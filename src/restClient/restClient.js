@@ -6,6 +6,7 @@ export class RestClient {
 
   constructor(baseUrl, config = {}) {
     this._baseUrl = baseUrl;
+    this._config = config;
     this._interceptors = config.interceptors || [];
     this._headers = config.headers || {};
     this._http = config.http || null;
