@@ -41,7 +41,7 @@ export class RestClient {
         conf.http = this._http;
       }
 
-      this._cache[resourceName] = new RestResource(this._baseUrl, resourceName , config);
+      this._cache[resourceName] = new RestResource(this._baseUrl, resourceName , conf);
     }
 
     return this._cache[resourceName];

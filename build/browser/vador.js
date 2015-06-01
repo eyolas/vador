@@ -9663,7 +9663,7 @@ var RestClient = (function () {
           conf.http = this._http;
         }
 
-        this._cache[resourceName] = new _restResource.RestResource(this._baseUrl, resourceName, config);
+        this._cache[resourceName] = new _restResource.RestResource(this._baseUrl, resourceName, conf);
       }
 
       return this._cache[resourceName];
