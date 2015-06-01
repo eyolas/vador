@@ -25,6 +25,7 @@ var RestClient = (function () {
     _classCallCheck(this, RestClient);
 
     this._baseUrl = baseUrl;
+    this._config = config;
     this._interceptors = config.interceptors || [];
     this._headers = config.headers || {};
     this._http = config.http || null;

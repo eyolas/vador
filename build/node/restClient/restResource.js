@@ -36,7 +36,8 @@ var RestResource = (function () {
     this._http = config.http || new _http.Http();
     this._resourceName = resourceName;
     this._request = new _request2.Request(resourceName, this);
-    this._config = config;
+    this._allConfig = config;
+    this._config = config[resourceName] || {};
     this._restKeys = ['findAll', 'search', 'findOne', 'save', 'toJSON'];
   }
 
@@ -59,7 +60,7 @@ var RestResource = (function () {
   }, {
     key: 'config',
     set: function (config) {
-      this._config = config;
+      this._allConfig = config;
     }
   }, {
     key: 'query',
@@ -124,7 +125,7 @@ var RestResource = (function () {
   }, {
     key: '_createSubInstance',
     value: function _createSubInstance(url, resource) {
-      return new RestResource(url, resource, this._config);
+      return new RestResource(url, resource, this._allConfig);
     }
   }, {
     key: '_proxifyOne',

@@ -13,7 +13,8 @@ export class RestResource {
     this._http = config.http || new Http();
     this._resourceName = resourceName;
     this._request = new Request(resourceName, this);
-    this._config = config;
+    this._allConfig = config;
+    this._config = config[resourceName] || {};
     this._restKeys = ['findAll', 'search', 'findOne', 'save', 'toJSON'];
   }
 
@@ -28,7 +29,7 @@ export class RestResource {
   }
 
   set config(config) {
-    this._config = config;
+    this._allConfig = config;
   }
 
   query(val) {
@@ -82,7 +83,7 @@ export class RestResource {
   }
 
   _createSubInstance(url, resource) {
-    return new RestResource(url, resource, this._config);
+    return new RestResource(url, resource, this._allConfig);
   }
 
   _proxifyOne(object) {
