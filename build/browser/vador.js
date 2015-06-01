@@ -9737,9 +9737,14 @@ var RestResource = (function () {
       return this;
     }
   }, {
+    key: 'interceptors',
+    set: function (interceptor) {
+      this._interceptors = interceptor;
+    }
+  }, {
     key: 'config',
     set: function (config) {
-      this._allConfig = config;
+      this._config = config;
     }
   }, {
     key: 'query',
