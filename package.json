@@ -1,0 +1,41 @@
+{
+  "name": "vador",
+  "version": "1.0.0",
+  "description": "rest client",
+  "dependencies": {
+    "bluebird": "^2.9.24",
+    "debug": "^2.1.3",
+    "lodash.assign": "^3.2.0",
+    "lodash.isobject": "^3.0.1",
+    "normalize-url": "^1.2.0",
+    "superagent": "^1.2.0",
+    "superagent-bluebird-promise": "^2.0.1"
+  },
+  "devDependencies": {
+    "babel": "^5.1.13",
+    "babelify": "^6.0.2",
+    "browserify": "^9.0.8",
+    "minifyify": "^7.0.0"
+  },
+  "main": "build/node/index.js",
+  "scripts": {
+    "clean": "rm -rf build/* && mkdir  -p build/{node,browser}",
+    "build-node": "babel -d build/node src/",
+    "build-browser": "browserify src/index.js --standalone vador -t babelify > build/browser/vador.js && browserify src/index.js --standalone vador -t babelify -t uglifyify > build/browser/vador.min.js",
+    "build-browser-min": "browserify src/index.js -d -p [minifyify --no-map] --standalone vador -t babelify  > build/browser/vador.min.js",
+    "build": "npm run clean && npm run build-node && npm run build-browser && npm run build-browser-min"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eyolas/vador.git"
+  },
+  "keywords": [
+    "rest"
+  ],
+  "author": "Touzet David <dtouzet@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eyolas/vador/issues"
+  },
+  "homepage": "https://github.com/eyolas/vador#readme"
+}
