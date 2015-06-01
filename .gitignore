@@ -1,6 +1,8 @@
 # master only
 site
 .tmp
+test.js
+test2.js
 
 # common
 node_modules
