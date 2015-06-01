@@ -28,8 +28,12 @@ export class RestResource {
     return this;
   }
 
+  set interceptors(interceptor) {
+    this._interceptors = interceptor;
+  }
+
   set config(config) {
-    this._allConfig = config;
+    this._config = config;
   }
 
   query(val) {
