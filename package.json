@@ -21,7 +21,7 @@
   "scripts": {
     "clean": "rm -rf build/* && mkdir  -p build/{node,browser}",
     "build-node": "babel -d build/node src/",
-    "build-browser": "browserify src/index.js --standalone vador -t babelify > build/browser/vador.js && browserify src/index.js --standalone vador -t babelify -t uglifyify > build/browser/vador.min.js",
+    "build-browser": "browserify src/index.js --standalone vador -t babelify > build/browser/vador.js",
     "build-browser-min": "browserify src/index.js -d -p [minifyify --no-map] --standalone vador -t babelify  > build/browser/vador.min.js",
     "build": "npm run clean && npm run build-node && npm run build-browser && npm run build-browser-min"
   },
