@@ -3,7 +3,7 @@
   "version": "1.0.3",
   "homepage": "https://github.com/eyolas/vador",
   "authors": [
-    "Touzet David <dtouzet@gmail.com>"
+    "David Touzet <dtouzet@gmail.com>"
   ],
   "description": "rest client",
   "main": "build/browser/vador.js",
