@@ -4747,8 +4747,7 @@ var RestResource = (function () {
         if (withProxy) {
           res.value = _this3.proxify(res);
         }
-        var r = [res.value, res.result];
-        return r;
+        return res;
       });
 
       return promise;
