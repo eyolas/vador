@@ -1,4 +1,4 @@
-import superagent from 'superagent-bluebird-promise';
+import superagent from 'superagent-es6-promise';
 import {isNotEmpty} from './utils';
 
 export class Http {

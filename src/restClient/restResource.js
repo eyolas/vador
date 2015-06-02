@@ -3,7 +3,6 @@ import {Response} from './response';
 import {Http} from './http';
 import {isNotEmpty} from './utils';
 import {ResponseInterceptor, RequestInterceptor} from '../core/baseInterceptors/'
-import Promise from 'bluebird';
 
 export class RestResource {
   constructor(baseUrl, resourceName , config = {}) {
@@ -191,7 +190,7 @@ export class RestResource {
         res.value = this.proxify(res);
       }
       let r = [res.value, res.result];
-      return r;
+      return res;
     });
 
     return promise;
