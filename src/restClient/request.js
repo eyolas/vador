@@ -8,7 +8,7 @@ export class Request {
     this._baseUrl = baseUrl;
     this._interceptors = config.interceptors || [];
     this._http = config.http;
-    this._resourceName = resourceName;
+    this.resourceName = resourceName;
     this._allConfig = config;
     this._config = config[resourceName] || {};
     this._restKeys = ['findAll', 'search', 'findOne', 'save', 'toJSON'];
@@ -77,8 +77,8 @@ export class Request {
 
     ['findAll', 'search', 'findOne'].forEach(method => {
       obj[method] = (resource, ...other) => {
-        let url = this._baseUrl + this._resourceName + '/' + obj.id + '/';
-        let r = this.restResource._createSubInstance(url, resource);
+        let url = this._baseUrl + this.resourceName + '/' + obj.id + '/';
+        let r = this.restResource._createSubInstance(url, resource, this._allConfig);
         return r[method](...other).sendRequest();
       };
     });

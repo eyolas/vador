@@ -37,7 +37,6 @@ var Http = (function () {
       if ((0, _utils.isNotEmpty)(_request.data)) {
         _request.data.forEach(r.send.bind(r));
       }
-
       return r;
     }
   }]);

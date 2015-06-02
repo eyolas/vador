@@ -4271,7 +4271,6 @@ var Http = (function () {
       if ((0, _utils.isNotEmpty)(_request.data)) {
         _request.data.forEach(r.send.bind(r));
       }
-
       return r;
     }
   }]);
@@ -4327,18 +4326,32 @@ var _normalizeUrl = require('normalize-url');
 
 var _normalizeUrl2 = _interopRequireDefault(_normalizeUrl);
 
+var _response = require('./response');
+
+var _coreBaseInterceptors = require('../core/baseInterceptors/');
+
 var Request = (function () {
-  function Request(resourceName, restResource) {
+  function Request(baseUrl, resourceName, restResource) {
+    var config = arguments[3] === undefined ? {} : arguments[3];
+
     _classCallCheck(this, Request);
+
+    this._baseUrl = baseUrl;
+    this._interceptors = config.interceptors || [];
+    this._http = config.http;
+    this.resourceName = resourceName;
+    this._allConfig = config;
+    this._config = config[resourceName] || {};
+    this._restKeys = ['findAll', 'search', 'findOne', 'save', 'toJSON'];
 
     this._url = null;
     this.method = 'get';
     this.responseType = Object;
-    this.resourceName = resourceName;
-    this.headers = {};
+    this.restResource = restResource;
+
+    this.headers = config.defaultHeaders;
     this.query = [];
     this.data = [];
-    this.restResource = restResource;
   }
 
   _createClass(Request, [{
@@ -4350,26 +4363,156 @@ var Request = (function () {
       return (0, _normalizeUrl2['default'])(this._url);
     }
   }, {
-    key: 'reset',
-    value: function reset() {
-      this.headers = [];
-      this.query = [];
-      this.data = [];
+    key: 'addInterceptor',
+    value: function addInterceptor(interceptor) {
+      var onEnd = arguments[1] === undefined ? true : arguments[1];
+
+      if (onEnd) {
+        this._interceptors.push(interceptor);
+      } else {
+        this._interceptors.unshift(interceptor);
+      }
+
+      return this;
     }
   }, {
     key: 'query',
     value: function query(val) {
       this.query.push(val);
+      return this;
     }
   }, {
     key: 'set',
     value: function set(field, val) {
       this.headers[field] = val;
+      return this;
     }
   }, {
     key: 'send',
     value: function send(data) {
       this.data.push(data);
+      return this;
+    }
+  }, {
+    key: '_proxifyOne',
+    value: function _proxifyOne(object) {
+      var _this = this;
+
+      var toJSON = function toJSON(objToConvert) {
+        if (!objToConvert) {
+          return objToConvert;
+        }
+
+        var json = {};
+        Object.keys(objToConvert).forEach(function (key) {
+          if (! ~_this._restKeys.indexOf(key)) {
+            json[key] = objToConvert[key];
+          }
+        });
+        return json;
+      };
+
+      var obj = toJSON(object);
+
+      Object.defineProperty(obj, '**oldState**', { value: toJSON(object) });
+
+      ['findAll', 'search', 'findOne'].forEach(function (method) {
+        obj[method] = function (resource) {
+          for (var _len = arguments.length, other = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+            other[_key - 1] = arguments[_key];
+          }
+
+          var url = _this._baseUrl + _this.resourceName + '/' + obj.id + '/';
+          var r = _this.restResource._createSubInstance(url, resource, _this._allConfig);
+          return r[method].apply(r, other).sendRequest();
+        };
+      });
+
+      obj.save = function () {
+        return _this.restResource.save(obj.toJSON());
+      };
+
+      obj.toJSON = function () {
+        return toJSON(this);
+      };
+
+      return obj;
+    }
+  }, {
+    key: 'proxify',
+    value: function proxify(res) {
+      var _this2 = this;
+
+      var value = res.value;
+      var request = res.request;
+
+      if (Array.isArray(value)) {
+        var _ret = (function () {
+          var values = [];
+          value.forEach(function (val) {
+            return values.push(_this2._proxifyOne(val));
+          });
+          return {
+            v: values
+          };
+        })();
+
+        if (typeof _ret === 'object') return _ret.v;
+      } else {
+        return this._proxifyOne(value);
+      }
+    }
+  }, {
+    key: 'sendRequest',
+    value: function sendRequest() {
+      var _this3 = this;
+
+      var withProxy = arguments[0] === undefined ? true : arguments[0];
+
+      var _request = function _request(request) {
+        return _this3._http.request(request).then(function (result) {
+          var value = result.body;
+          if (!value && result.text) {
+            try {
+              value = JSON.parse(result.text);
+            } catch (e) {
+              value = null;
+            }
+          }
+          return new _response.Response(value, result, request);
+        });
+      };
+
+      var chain = [_request, undefined];
+
+      if ((0, _utils.isNotEmpty)(this._interceptors)) {
+        this._interceptors.forEach(function (interceptor) {
+          if (interceptor instanceof _coreBaseInterceptors.RequestInterceptor) {
+            chain.unshift(interceptor.request.bind(interceptor), interceptor.requestError.bind(interceptor));
+          }
+
+          if (interceptor instanceof _coreBaseInterceptors.ResponseInterceptor) {
+            chain.push(interceptor.response.bind(interceptor), interceptor.responseError.bind(interceptor));
+          }
+        });
+      }
+
+      var promise = Promise.resolve(this);
+      while (chain.length) {
+        var thenFn = chain.shift();
+        var rejectFn = chain.shift();
+
+        promise = promise.then(thenFn, rejectFn);
+      }
+
+      promise = promise.then(function (res) {
+        if (withProxy) {
+          res.value = _this3.proxify(res);
+        }
+        return res;
+      });
+
+      return promise;
     }
   }]);
 
@@ -4378,7 +4521,7 @@ var Request = (function () {
 
 exports.Request = Request;
 
-},{"./utils":37,"normalize-url":18}],34:[function(require,module,exports){
+},{"../core/baseInterceptors/":27,"./response":34,"./utils":37,"normalize-url":18}],34:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -4513,15 +4656,9 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _request2 = require('./request');
-
-var _response = require('./response');
+var _request = require('./request');
 
 var _http = require('./http');
-
-var _utils = require('./utils');
-
-var _coreBaseInterceptors = require('../core/baseInterceptors/');
 
 var RestResource = (function () {
   function RestResource(baseUrl, resourceName) {
@@ -4530,36 +4667,26 @@ var RestResource = (function () {
     _classCallCheck(this, RestResource);
 
     this._baseUrl = baseUrl + '/';
-    this._defaultHeaders = config.defaultHeaders || [];
-    this._interceptors = config.interceptors || [];
-    this._http = config.http || new _http.Http();
     this._resourceName = resourceName;
-    this._request = new _request2.Request(resourceName, this);
-    this._allConfig = config;
-    this._config = config[resourceName] || {};
-    this._restKeys = ['findAll', 'search', 'findOne', 'save', 'toJSON'];
+    this._config = config;
+
+    this._config.defaultHeaders = config.defaultHeaders || {};
+    this._config.interceptors = config.interceptors || [];
+    this._config.http = config.http || new _http.Http();
   }
 
   _createClass(RestResource, [{
     key: 'constructBaseRequest',
-
-    /****** Request wrapper *****************/
     value: function constructBaseRequest() {
       var method = arguments[0] === undefined ? 'get' : arguments[0];
       var responseType = arguments[1] === undefined ? Array : arguments[1];
       var addUrl = arguments[2] === undefined ? '' : arguments[2];
 
-      this._request.reset();
-      this._request.responseType = responseType;
-      this._request.url = this._baseUrl + this._resourceName + addUrl;
-      this._request.method = method;
-      this._request.headers = this._defaultHeaders;
-      return this;
-    }
-  }, {
-    key: 'interceptors',
-    set: function (interceptor) {
-      this._interceptors = interceptor;
+      var request = new _request.Request(this._baseUrl, this._resourceName, this, this._config);
+      request.responseType = responseType;
+      request.url = this._baseUrl + this._resourceName + addUrl;
+      request.method = method;
+      return request;
     }
   }, {
     key: 'config',
@@ -4567,37 +4694,9 @@ var RestResource = (function () {
       this._config = config;
     }
   }, {
-    key: 'query',
-    value: function query(val) {
-      this._request.query(val);
-      return this;
-    }
-  }, {
-    key: 'set',
-    value: function set(field, val) {
-      this._request.set(field, val);
-      return this;
-    }
-  }, {
-    key: 'send',
-    value: function send(data) {
-      this._request.send(data);
-      return this;
-    }
-  }, {
     key: 'findAll',
-
-    /*********** end wrapper ************/
-
     value: function findAll() {
       return this.constructBaseRequest();
-    }
-  }, {
-    key: 'search',
-    value: function search() {
-      var query = arguments[0] === undefined ? {} : arguments[0];
-
-      return this.findAll().query(query);
     }
   }, {
     key: 'findOne',
@@ -4628,129 +4727,8 @@ var RestResource = (function () {
     }
   }, {
     key: '_createSubInstance',
-    value: function _createSubInstance(url, resource) {
-      return new RestResource(url, resource, this._allConfig);
-    }
-  }, {
-    key: '_proxifyOne',
-    value: function _proxifyOne(object) {
-      var _this = this;
-
-      var toJSON = function toJSON(objToConvert) {
-        if (!objToConvert) {
-          return objToConvert;
-        }
-
-        var json = {};
-        Object.keys(objToConvert).forEach(function (key) {
-          if (! ~_this._restKeys.indexOf(key)) {
-            json[key] = objToConvert[key];
-          }
-        });
-        return json;
-      };
-
-      var obj = toJSON(object);
-
-      Object.defineProperty(obj, '**oldState**', { value: toJSON(object) });
-
-      ['findAll', 'search', 'findOne'].forEach(function (method) {
-        obj[method] = function (resource) {
-          for (var _len = arguments.length, other = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-            other[_key - 1] = arguments[_key];
-          }
-
-          var url = _this._baseUrl + _this._resourceName + '/' + obj.id + '/';
-          var r = _this._createSubInstance(url, resource);
-          return r[method].apply(r, other).sendRequest();
-        };
-      });
-
-      obj.save = function () {
-        return _this.save(obj.toJSON());
-      };
-
-      obj.toJSON = function () {
-        return toJSON(this);
-      };
-
-      return obj;
-    }
-  }, {
-    key: 'proxify',
-    value: function proxify(res) {
-      var _this2 = this;
-
-      var value = res.value;
-      var request = res.request;
-
-      if (Array.isArray(value)) {
-        var _ret = (function () {
-          var values = [];
-          value.forEach(function (val) {
-            return values.push(_this2._proxifyOne(val));
-          });
-          return {
-            v: values
-          };
-        })();
-
-        if (typeof _ret === 'object') return _ret.v;
-      } else {
-        return this._proxifyOne(value);
-      }
-    }
-  }, {
-    key: 'sendRequest',
-    value: function sendRequest() {
-      var _this3 = this;
-
-      var withProxy = arguments[0] === undefined ? true : arguments[0];
-
-      var _request = function _request(request) {
-        return _this3._http.request(request).then(function (result) {
-          var value = result.body;
-          if (!value && result.text) {
-            try {
-              value = JSON.parse(result.text);
-            } catch (e) {
-              value = null;
-            }
-          }
-          return new _response.Response(value, result, request);
-        });
-      };
-
-      var chain = [_request, undefined];
-
-      if ((0, _utils.isNotEmpty)(this._interceptors)) {
-        this._interceptors.forEach(function (interceptor) {
-          if (interceptor instanceof _coreBaseInterceptors.RequestInterceptor) {
-            chain.unshift(interceptor.request.bind(interceptor), interceptor.requestError.bind(interceptor));
-          }
-
-          if (interceptor instanceof _coreBaseInterceptors.ResponseInterceptor) {
-            chain.push(interceptor.response.bind(interceptor), interceptor.responseError.bind(interceptor));
-          }
-        });
-      }
-
-      var promise = Promise.resolve(this._request);
-      while (chain.length) {
-        var thenFn = chain.shift();
-        var rejectFn = chain.shift();
-
-        promise = promise.then(thenFn, rejectFn);
-      }
-
-      promise = promise.then(function (res) {
-        if (withProxy) {
-          res.value = _this3.proxify(res);
-        }
-        return res;
-      });
-
-      return promise;
+    value: function _createSubInstance(url, resource, config) {
+      return new RestResource(url, resource, config);
     }
   }]);
 
@@ -4759,7 +4737,7 @@ var RestResource = (function () {
 
 exports.RestResource = RestResource;
 
-},{"../core/baseInterceptors/":27,"./http":31,"./request":33,"./response":34,"./utils":37}],37:[function(require,module,exports){
+},{"./http":31,"./request":33}],37:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {

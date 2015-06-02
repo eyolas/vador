@@ -5,7 +5,7 @@ import {Http} from './http';
 export class RestResource {
   constructor(baseUrl, resourceName , config = {}) {
     this._baseUrl = baseUrl + '/';
-    this._resourceName = resourceName;
+    this.resourceName = resourceName;
     this._config = config;
 
     this._config.defaultHeaders = config.defaultHeaders || {};
@@ -13,11 +13,10 @@ export class RestResource {
     this._config.http = config.http || new Http();
   }
 
-  /****** Request wrapper *****************/
   constructBaseRequest(method = 'get', responseType = Array, addUrl = '') {
-    var request = new Request(this._baseUrl, this._resourceName, this, this._config);
+    var request = new Request(this._baseUrl, this.resourceName, this, this._config);
     request.responseType = responseType;
-    request.url = this._baseUrl + this._resourceName + addUrl;
+    request.url = this._baseUrl + this.resourceName + addUrl;
     request.method = method;
     return request;
   }
@@ -25,8 +24,6 @@ export class RestResource {
   set config(config) {
     this._config = config;
   }
-
-  /*********** end wrapper ************/
 
   findAll() {
     return this.constructBaseRequest();
