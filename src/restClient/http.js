@@ -16,7 +16,6 @@ export class Http {
     if (isNotEmpty(request.data)) {
       request.data.forEach(r.send.bind(r));
     }
-
     return r;
   }
 }
