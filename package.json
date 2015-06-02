@@ -11,6 +11,7 @@
     "superagent": "^1.2.0",
     "superagent-bluebird-promise": "^2.0.1"
   },
+  "engine": "node >= 0.12.0",
   "devDependencies": {
     "babel": "^5.1.13",
     "babelify": "^6.0.2",
