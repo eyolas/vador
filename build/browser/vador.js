@@ -4667,7 +4667,7 @@ var RestResource = (function () {
     _classCallCheck(this, RestResource);
 
     this._baseUrl = baseUrl + '/';
-    this._resourceName = resourceName;
+    this.resourceName = resourceName;
     this._config = config;
 
     this._config.defaultHeaders = config.defaultHeaders || {};
@@ -4682,9 +4682,9 @@ var RestResource = (function () {
       var responseType = arguments[1] === undefined ? Array : arguments[1];
       var addUrl = arguments[2] === undefined ? '' : arguments[2];
 
-      var request = new _request.Request(this._baseUrl, this._resourceName, this, this._config);
+      var request = new _request.Request(this._baseUrl, this.resourceName, this, this._config);
       request.responseType = responseType;
-      request.url = this._baseUrl + this._resourceName + addUrl;
+      request.url = this._baseUrl + this.resourceName + addUrl;
       request.method = method;
       return request;
     }
