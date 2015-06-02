@@ -189,7 +189,6 @@ export class RestResource {
       if (withProxy) {
         res.value = this.proxify(res);
       }
-      let r = [res.value, res.result];
       return res;
     });
 
