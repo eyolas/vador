@@ -64,7 +64,8 @@ var RestClient = (function () {
       var config = arguments[1] === undefined ? {} : arguments[1];
 
       if (!this._cache[resourceName]) {
-        var conf = (0, _lodashObjectAssign2['default'])({}, this._config, config);
+        var conf = (0, _lodashObjectAssign2['default'])({}, this._config);
+        conf.http = config.http || null;
         conf.defaultHeaders = (0, _lodashObjectAssign2['default'])({}, this._headers, config.defaultHeaders || {});
         conf.interceptors = (config.interceptors || []).concat(this._interceptors);
         if (!conf.http) {
