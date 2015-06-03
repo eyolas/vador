@@ -33,6 +33,10 @@ export class RestClient {
     }
   }
 
+  instanciateResource(resourceName, conf) {
+   return new RestResource(this._baseUrl, resourceName , conf);
+  }
+
   resource(resourceName, config = {}) {
     if (!this._cache[resourceName]) {
       let conf = assign({}, this._config);
@@ -43,7 +47,7 @@ export class RestClient {
         conf.http = this._http;
       }
 
-      this._cache[resourceName] = new RestResource(this._baseUrl, resourceName , conf);
+      this._cache[resourceName] = this.instanciateResource(resourceName , conf);
     }
 
     return this._cache[resourceName];
