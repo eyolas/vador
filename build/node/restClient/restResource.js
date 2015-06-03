@@ -31,11 +31,11 @@ var RestResource = (function () {
     this._baseUrl = baseUrl + '/';
     this.resourceName = resourceName;
     this._config = config;
-    var config = this._config[resourceName] || {};
-
     this._config.defaultHeaders = config.defaultHeaders || {};
     this._config.interceptors = config.interceptors || [];
     this._config.http = config.http || new _http.Http();
+
+    var config = this._config[resourceName] || {};
 
     if ((0, _lodashLangIsObject2['default'])(config.methods)) {
       (function () {
@@ -56,9 +56,8 @@ var RestResource = (function () {
             return function () {
               var obj = arguments[0] === undefined ? {} : arguments[0];
 
-              console.log('call with', obj);
               var addUrl = url.expand(obj);
-              console.log('get', type, addUrl);
+
               return _this.constructBaseRequest('get', type, addUrl);
             };
           })(url, type);
