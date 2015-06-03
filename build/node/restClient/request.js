@@ -6,15 +6,9 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var _utils = require('./utils');
-
-var _normalizeUrl = require('normalize-url');
-
-var _normalizeUrl2 = _interopRequireDefault(_normalizeUrl);
 
 var _response = require('./response');
 
@@ -47,10 +41,10 @@ var Request = (function () {
   _createClass(Request, [{
     key: 'url',
     set: function (url) {
-      this._url = (0, _normalizeUrl2['default'])(url);
+      this._url = (0, _utils.normalizeUrl)(url);
     },
     get: function () {
-      return (0, _normalizeUrl2['default'])(this._url);
+      return (0, _utils.normalizeUrl)(this._url);
     }
   }, {
     key: 'addInterceptor',

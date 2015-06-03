@@ -4316,15 +4316,9 @@ Object.defineProperty(exports, '__esModule', {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var _utils = require('./utils');
-
-var _normalizeUrl = require('normalize-url');
-
-var _normalizeUrl2 = _interopRequireDefault(_normalizeUrl);
 
 var _response = require('./response');
 
@@ -4357,10 +4351,10 @@ var Request = (function () {
   _createClass(Request, [{
     key: 'url',
     set: function (url) {
-      this._url = (0, _normalizeUrl2['default'])(url);
+      this._url = (0, _utils.normalizeUrl)(url);
     },
     get: function () {
-      return (0, _normalizeUrl2['default'])(this._url);
+      return (0, _utils.normalizeUrl)(this._url);
     }
   }, {
     key: 'addInterceptor',
@@ -4521,7 +4515,7 @@ var Request = (function () {
 
 exports.Request = Request;
 
-},{"../core/baseInterceptors/":27,"./response":34,"./utils":37,"normalize-url":18}],34:[function(require,module,exports){
+},{"../core/baseInterceptors/":27,"./response":34,"./utils":37}],34:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -4738,16 +4732,33 @@ var RestResource = (function () {
 exports.RestResource = RestResource;
 
 },{"./http":31,"./request":33}],37:[function(require,module,exports){
-"use strict";
+'use strict';
 
-Object.defineProperty(exports, "__esModule", {
+Object.defineProperty(exports, '__esModule', {
   value: true
 });
 exports.isNotEmpty = isNotEmpty;
+exports.normalizeUrl = normalizeUrl;
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _normalizeUrl = require('normalize-url');
+
+var _normalizeUrl2 = _interopRequireDefault(_normalizeUrl);
+
+var IS_ABSOLUTE = /^http.*/;
 
 function isNotEmpty(arr) {
   return arr && Array.isArray(arr) && arr.length;
 }
 
-},{}]},{},[30])(30)
+function normalizeUrl(url) {
+  if (!IS_ABSOLUTE.test(url)) {
+    return (0, _normalizeUrl2['default'])(url).replace('http://', '');
+  } else {
+    return (0, _normalizeUrl2['default'])(url);
+  }
+}
+
+},{"normalize-url":18}]},{},[30])(30)
 });

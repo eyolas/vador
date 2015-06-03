@@ -1,5 +1,4 @@
-import {isNotEmpty} from './utils';
-import normalizeUrl from 'normalize-url';
+import {isNotEmpty, normalizeUrl} from './utils';
 import {Response} from './response';
 import {ResponseInterceptor, RequestInterceptor} from '../core/baseInterceptors/'
 

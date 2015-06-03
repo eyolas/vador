@@ -3,7 +3,6 @@
   "version": "1.2.0",
   "description": "rest client",
   "dependencies": {
-    "bluebird": "^2.9.24",
     "lodash.assign": "^3.2.0",
     "lodash.isobject": "^3.0.1",
     "normalize-url": "^1.2.0",
