@@ -5465,6 +5465,11 @@ var RestClient = (function () {
       }
     }
   }, {
+    key: 'instanciateResource',
+    value: function instanciateResource(resourceName, conf) {
+      return new _restResource.RestResource(this._baseUrl, resourceName, conf);
+    }
+  }, {
     key: 'resource',
     value: function resource(resourceName) {
       var config = arguments[1] === undefined ? {} : arguments[1];
@@ -5478,7 +5483,7 @@ var RestClient = (function () {
           conf.http = this._http;
         }
 
-        this._cache[resourceName] = new _restResource.RestResource(this._baseUrl, resourceName, conf);
+        this._cache[resourceName] = this.instanciateResource(resourceName, conf);
       }
 
       return this._cache[resourceName];
