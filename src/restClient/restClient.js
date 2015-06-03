@@ -35,7 +35,8 @@ export class RestClient {
 
   resource(resourceName, config = {}) {
     if (!this._cache[resourceName]) {
-      let conf = assign({}, this._config, config);
+      let conf = assign({}, this._config);
+      conf.http = config.http || null;
       conf.defaultHeaders = assign({}, this._headers, config.defaultHeaders || {});
       conf.interceptors = (config.interceptors || []).concat(this._interceptors);
       if (!conf.http) {

@@ -48,10 +48,6 @@ export class RestResource {
     return request;
   }
 
-  set config(config) {
-    this._config = config;
-  }
-
   findAll() {
     return this.constructBaseRequest();
   }
