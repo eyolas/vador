@@ -9,11 +9,11 @@ export class RestResource {
     this._baseUrl = baseUrl + '/';
     this.resourceName = resourceName;
     this._config = config;
-    var config = this._config[resourceName] || {};
-
     this._config.defaultHeaders = config.defaultHeaders || {};
     this._config.interceptors = config.interceptors || [];
     this._config.http = config.http || new Http();
+
+    var config = this._config[resourceName] || {};
 
     if (isObject(config.methods)) {
       let methods = config.methods;
@@ -30,9 +30,9 @@ export class RestResource {
 
           this[method] = ((url, type) => {
             return (obj = {}) => {
-              console.log("call with", obj);
+
               let addUrl = url.expand(obj);
-              console.log('get', type, addUrl);
+
               return this.constructBaseRequest('get', type, addUrl);
             }
           })(url, type);
