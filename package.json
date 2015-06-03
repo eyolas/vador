@@ -1,6 +1,6 @@
 {
   "name": "vador",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "rest client",
   "dependencies": {
     "lodash.assign": "^3.2.0",
