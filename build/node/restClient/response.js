@@ -10,9 +10,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _lodashIsobject = require('lodash.isobject');
+var _lodashLangIsObject = require('lodash/lang/isObject');
 
-var _lodashIsobject2 = _interopRequireDefault(_lodashIsobject);
+var _lodashLangIsObject2 = _interopRequireDefault(_lodashLangIsObject);
 
 var Response = (function () {
   function Response(value, result, request) {
@@ -26,7 +26,7 @@ var Response = (function () {
   _createClass(Response, [{
     key: 'hasValue',
     value: function hasValue() {
-      return Array.isArray(this.value) || (0, _lodashIsobject2['default'])(this.value);
+      return Array.isArray(this.value) || (0, _lodashLangIsObject2['default'])(this.value);
     }
   }]);
 

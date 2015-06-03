@@ -1,6 +1,6 @@
 import {Http} from './http';
 import {RestResource} from './restResource';
-import assign from 'lodash.assign';
+import assign from 'lodash/object/assign';
 
 export class RestClient {
 

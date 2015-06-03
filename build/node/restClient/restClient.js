@@ -14,9 +14,9 @@ var _http = require('./http');
 
 var _restResource = require('./restResource');
 
-var _lodashAssign = require('lodash.assign');
+var _lodashObjectAssign = require('lodash/object/assign');
 
-var _lodashAssign2 = _interopRequireDefault(_lodashAssign);
+var _lodashObjectAssign2 = _interopRequireDefault(_lodashObjectAssign);
 
 var RestClient = (function () {
   function RestClient(baseUrl) {
@@ -64,8 +64,8 @@ var RestClient = (function () {
       var config = arguments[1] === undefined ? {} : arguments[1];
 
       if (!this._cache[resourceName]) {
-        var conf = (0, _lodashAssign2['default'])({}, this._config, config);
-        conf.defaultHeaders = (0, _lodashAssign2['default'])({}, this._headers, config.defaultHeaders || {});
+        var conf = (0, _lodashObjectAssign2['default'])({}, this._config, config);
+        conf.defaultHeaders = (0, _lodashObjectAssign2['default'])({}, this._headers, config.defaultHeaders || {});
         conf.interceptors = (config.interceptors || []).concat(this._interceptors);
         if (!conf.http) {
           conf.http = this._http;
