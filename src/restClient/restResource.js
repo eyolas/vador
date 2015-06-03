@@ -1,5 +1,7 @@
 import {Request} from './request';
 import {Http} from './http';
+import isObject from 'lodash/lang/isObject';
+import {parse} from 'uri-template';
 
 
 export class RestResource {
@@ -7,10 +9,35 @@ export class RestResource {
     this._baseUrl = baseUrl + '/';
     this.resourceName = resourceName;
     this._config = config;
+    var config = this._config[resourceName] || {};
 
     this._config.defaultHeaders = config.defaultHeaders || {};
     this._config.interceptors = config.interceptors || [];
     this._config.http = config.http || new Http();
+
+    if (isObject(config.methods)) {
+      let methods = config.methods;
+      Object.keys(methods)
+        .forEach(method => {
+          let type = Array;
+          let href = methods[method];
+
+          if (isObject(methods[method])) {
+            ({type, href} = methods[method]);
+          }
+
+          let url = parse(href);
+
+          this[method] = ((url, type) => {
+            return (obj = {}) => {
+              console.log("call with", obj);
+              let addUrl = url.expand(obj);
+              console.log('get', type, addUrl);
+              return this.constructBaseRequest('get', type, addUrl);
+            }
+          })(url, type);
+        })
+    }
   }
 
   constructBaseRequest(method = 'get', responseType = Array, addUrl = '') {
