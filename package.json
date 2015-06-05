@@ -14,10 +14,14 @@
     "babel": "^5.1.13",
     "babelify": "^6.0.2",
     "browserify": "^9.0.8",
-    "minifyify": "^7.0.0"
+    "chai": "^3.0.0",
+    "minifyify": "^7.0.0",
+    "mocha": "^2.2.5",
+    "mocha-unfunk-reporter": "^0.4.0"
   },
   "main": "build/node/index.js",
   "scripts": {
+    "test": "mocha --recursive --compilers js:babel/register -R mocha-unfunk-reporter",
     "clean": "rm -rf build/* && mkdir  -p build/{node,browser}",
     "build-node": "babel -d build/node src/",
     "build-browser": "browserify src/index.js --standalone vador -t babelify > build/browser/vador.js",
