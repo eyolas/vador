@@ -39,14 +39,6 @@ var Request = (function () {
   }
 
   _createClass(Request, [{
-    key: 'url',
-    set: function (url) {
-      this._url = (0, _utils.normalizeUrl)(url);
-    },
-    get: function () {
-      return (0, _utils.normalizeUrl)(this._url);
-    }
-  }, {
     key: 'addInterceptor',
     value: function addInterceptor(interceptor) {
       var onEnd = arguments[1] === undefined ? true : arguments[1];
@@ -197,6 +189,14 @@ var Request = (function () {
       });
 
       return promise;
+    }
+  }, {
+    key: 'url',
+    set: function (url) {
+      this._url = (0, _utils.normalizeUrl)(url);
+    },
+    get: function () {
+      return (0, _utils.normalizeUrl)(this._url);
     }
   }]);
 

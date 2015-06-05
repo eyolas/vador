@@ -33,19 +33,9 @@ var RestClient = (function () {
   }
 
   _createClass(RestClient, [{
-    key: 'baseUrl',
-    set: function (baseUrl) {
-      this._baseUrl = baseUrl;
-    }
-  }, {
     key: 'addHeader',
     value: function addHeader(field, val) {
       this._headers[field] = val;
-    }
-  }, {
-    key: 'http',
-    set: function (http) {
-      this._http = http;
     }
   }, {
     key: 'addInterceptor',
@@ -81,6 +71,16 @@ var RestClient = (function () {
       }
 
       return this._cache[resourceName];
+    }
+  }, {
+    key: 'baseUrl',
+    set: function (baseUrl) {
+      this._baseUrl = baseUrl;
+    }
+  }, {
+    key: 'http',
+    set: function (http) {
+      this._http = http;
     }
   }]);
 

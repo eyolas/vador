@@ -1,14 +1,19 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.vador = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (global){
-/*! http://mths.be/punycode v1.2.4 by @mathias */
+/*! https://mths.be/punycode v1.3.2 by @mathias */
 ;(function(root) {
 
 	/** Detect free variables */
-	var freeExports = typeof exports == 'object' && exports;
+	var freeExports = typeof exports == 'object' && exports &&
+		!exports.nodeType && exports;
 	var freeModule = typeof module == 'object' && module &&
-		module.exports == freeExports && module;
+		!module.nodeType && module;
 	var freeGlobal = typeof global == 'object' && global;
-	if (freeGlobal.global === freeGlobal || freeGlobal.window === freeGlobal) {
+	if (
+		freeGlobal.global === freeGlobal ||
+		freeGlobal.window === freeGlobal ||
+		freeGlobal.self === freeGlobal
+	) {
 		root = freeGlobal;
 	}
 
@@ -34,8 +39,8 @@
 
 	/** Regular expressions */
 	regexPunycode = /^xn--/,
-	regexNonASCII = /[^ -~]/, // unprintable ASCII chars + non-ASCII chars
-	regexSeparators = /\x2E|\u3002|\uFF0E|\uFF61/g, // RFC 3490 separators
+	regexNonASCII = /[^\x20-\x7E]/, // unprintable ASCII chars + non-ASCII chars
+	regexSeparators = /[\x2E\u3002\uFF0E\uFF61]/g, // RFC 3490 separators
 
 	/** Error messages */
 	errors = {
@@ -74,23 +79,37 @@
 	 */
 	function map(array, fn) {
 		var length = array.length;
+		var result = [];
 		while (length--) {
-			array[length] = fn(array[length]);
+			result[length] = fn(array[length]);
 		}
-		return array;
+		return result;
 	}
 
 	/**
-	 * A simple `Array#map`-like wrapper to work with domain name strings.
+	 * A simple `Array#map`-like wrapper to work with domain name strings or email
+	 * addresses.
 	 * @private
-	 * @param {String} domain The domain name.
+	 * @param {String} domain The domain name or email address.
 	 * @param {Function} callback The function that gets called for every
 	 * character.
 	 * @returns {Array} A new string of characters returned by the callback
 	 * function.
 	 */
 	function mapDomain(string, fn) {
-		return map(string.split(regexSeparators), fn).join('.');
+		var parts = string.split('@');
+		var result = '';
+		if (parts.length > 1) {
+			// In email addresses, only the domain name should be punycoded. Leave
+			// the local part (i.e. everything up to `@`) intact.
+			result = parts[0] + '@';
+			string = parts[1];
+		}
+		// Avoid `split(regex)` for IE8 compatibility. See #17.
+		string = string.replace(regexSeparators, '\x2E');
+		var labels = string.split('.');
+		var encoded = map(labels, fn).join('.');
+		return result + encoded;
 	}
 
 	/**
@@ -100,7 +119,7 @@
 	 * UCS-2 exposes as separate characters) into a single code point,
 	 * matching UTF-16.
 	 * @see `punycode.ucs2.encode`
-	 * @see <http://mathiasbynens.be/notes/javascript-encoding>
+	 * @see <https://mathiasbynens.be/notes/javascript-encoding>
 	 * @memberOf punycode.ucs2
 	 * @name decode
 	 * @param {String} string The Unicode input string (UCS-2).
@@ -309,8 +328,8 @@
 	}
 
 	/**
-	 * Converts a string of Unicode symbols to a Punycode string of ASCII-only
-	 * symbols.
+	 * Converts a string of Unicode symbols (e.g. a domain name label) to a
+	 * Punycode string of ASCII-only symbols.
 	 * @memberOf punycode
 	 * @param {String} input The string of Unicode symbols.
 	 * @returns {String} The resulting Punycode string of ASCII-only symbols.
@@ -423,17 +442,18 @@
 	}
 
 	/**
-	 * Converts a Punycode string representing a domain name to Unicode. Only the
-	 * Punycoded parts of the domain name will be converted, i.e. it doesn't
-	 * matter if you call it on a string that has already been converted to
-	 * Unicode.
+	 * Converts a Punycode string representing a domain name or an email address
+	 * to Unicode. Only the Punycoded parts of the input will be converted, i.e.
+	 * it doesn't matter if you call it on a string that has already been
+	 * converted to Unicode.
 	 * @memberOf punycode
-	 * @param {String} domain The Punycode domain name to convert to Unicode.
+	 * @param {String} input The Punycoded domain name or email address to
+	 * convert to Unicode.
 	 * @returns {String} The Unicode representation of the given Punycode
 	 * string.
 	 */
-	function toUnicode(domain) {
-		return mapDomain(domain, function(string) {
+	function toUnicode(input) {
+		return mapDomain(input, function(string) {
 			return regexPunycode.test(string)
 				? decode(string.slice(4).toLowerCase())
 				: string;
@@ -441,15 +461,18 @@
 	}
 
 	/**
-	 * Converts a Unicode string representing a domain name to Punycode. Only the
-	 * non-ASCII parts of the domain name will be converted, i.e. it doesn't
-	 * matter if you call it with a domain that's already in ASCII.
+	 * Converts a Unicode string representing a domain name or an email address to
+	 * Punycode. Only the non-ASCII parts of the domain name will be converted,
+	 * i.e. it doesn't matter if you call it with a domain that's already in
+	 * ASCII.
 	 * @memberOf punycode
-	 * @param {String} domain The domain name to convert, as a Unicode string.
-	 * @returns {String} The Punycode representation of the given domain name.
+	 * @param {String} input The domain name or email address to convert, as a
+	 * Unicode string.
+	 * @returns {String} The Punycode representation of the given domain name or
+	 * email address.
 	 */
-	function toASCII(domain) {
-		return mapDomain(domain, function(string) {
+	function toASCII(input) {
+		return mapDomain(input, function(string) {
 			return regexNonASCII.test(string)
 				? 'xn--' + encode(string)
 				: string;
@@ -465,11 +488,11 @@
 		 * @memberOf punycode
 		 * @type String
 		 */
-		'version': '1.2.4',
+		'version': '1.3.2',
 		/**
 		 * An object of methods to convert from JavaScript's internal character
 		 * representation (UCS-2) to Unicode code points, and back.
-		 * @see <http://mathiasbynens.be/notes/javascript-encoding>
+		 * @see <https://mathiasbynens.be/notes/javascript-encoding>
 		 * @memberOf punycode
 		 * @type Object
 		 */
@@ -494,8 +517,8 @@
 		define('punycode', function() {
 			return punycode;
 		});
-	} else if (freeExports && !freeExports.nodeType) {
-		if (freeModule) { // in Node.js or RingoJS v0.8.0+
+	} else if (freeExports && freeModule) {
+		if (module.exports == freeExports) { // in Node.js or RingoJS v0.8.0+
 			freeModule.exports = punycode;
 		} else { // in Narwhal or RingoJS v0.7.0-
 			for (key in punycode) {
@@ -2355,6 +2378,10 @@ module.exports = function (url) {
 },{}],34:[function(require,module,exports){
 'use strict';
 
+exports.extract = function (maybeUrl) {
+	return maybeUrl.split('?')[1] || '';
+};
+
 exports.parse = function (str) {
 	if (typeof str !== 'string') {
 		return {};
@@ -2366,7 +2393,7 @@ exports.parse = function (str) {
 		return {};
 	}
 
-	return str.trim().split('&').reduce(function (ret, param) {
+	return str.split('&').reduce(function (ret, param) {
 		var parts = param.replace(/\+/g, ' ').split('=');
 		var key = parts[0];
 		var val = parts[1];
@@ -5694,22 +5721,13 @@ module.exports = function pctEncode(regexp) {
 },{}],45:[function(require,module,exports){
 "use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),o=0;o<t.length;o++){var n=t[o],p=Object.getOwnPropertyDescriptor(r,n);p&&p.configurable&&void 0===e[n]&&Object.defineProperty(e,n,p)}return e}Object.defineProperty(exports,"__esModule",{value:!0});var _requestInterceptor=require("./requestInterceptor");_defaults(exports,_interopRequireWildcard(_requestInterceptor));var _responseInterceptor=require("./responseInterceptor");_defaults(exports,_interopRequireWildcard(_responseInterceptor));
 
-
 },{"./requestInterceptor":46,"./responseInterceptor":47}],46:[function(require,module,exports){
 "use strict";function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var r=0;r<t.length;r++){var n=t[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(t,r,n){return r&&e(t.prototype,r),n&&e(t,n),t}}(),RequestInterceptor=function(){function e(){_classCallCheck(this,e)}return _createClass(e,[{key:"request",value:function(e){}},{key:"requestError",value:function(e){}}]),e}();exports.RequestInterceptor=RequestInterceptor;
-
 
 },{}],47:[function(require,module,exports){
 "use strict";function _classCallCheck(e,n){if(!(e instanceof n))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,n){for(var r=0;r<n.length;r++){var t=n[r];t.enumerable=t.enumerable||!1,t.configurable=!0,"value"in t&&(t.writable=!0),Object.defineProperty(e,t.key,t)}}return function(n,r,t){return r&&e(n.prototype,r),t&&e(n,t),n}}(),ResponseInterceptor=function(){function e(){_classCallCheck(this,e)}return _createClass(e,[{key:"response",value:function(e){}},{key:"responseError",value:function(e){}}]),e}();exports.ResponseInterceptor=ResponseInterceptor;
 
-
 },{}],48:[function(require,module,exports){
-(function (global){
-"use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),o=0;o<t.length;o++){var i=t[o],n=Object.getOwnPropertyDescriptor(r,i);n&&n.configurable&&void 0===e[i]&&Object.defineProperty(e,i,n)}return e}Object.defineProperty(exports,"__esModule",{value:!0}),global.Promise=require("yaku");var _restClient=require("./restClient/");_defaults(exports,_interopRequireWildcard(_restClient));var _coreBaseInterceptors=require("./core/baseInterceptors");_defaults(exports,_interopRequireWildcard(_coreBaseInterceptors));
-
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./core/baseInterceptors":45,"./restClient/":50,"yaku":44}],49:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5758,7 +5776,7 @@ var Http = (function () {
 
 exports.Http = Http;
 
-},{"./utils":55,"superagent-es6-promise":36}],50:[function(require,module,exports){
+},{"./utils":54,"superagent-es6-promise":36}],49:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5785,7 +5803,7 @@ var _restResource = require('./restResource');
 
 _defaults(exports, _interopRequireWildcard(_restResource));
 
-},{"./request":51,"./response":52,"./restClient":53,"./restResource":54}],51:[function(require,module,exports){
+},{"./request":50,"./response":51,"./restClient":52,"./restResource":53}],50:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5827,14 +5845,6 @@ var Request = (function () {
   }
 
   _createClass(Request, [{
-    key: 'url',
-    set: function (url) {
-      this._url = (0, _utils.normalizeUrl)(url);
-    },
-    get: function () {
-      return (0, _utils.normalizeUrl)(this._url);
-    }
-  }, {
     key: 'addInterceptor',
     value: function addInterceptor(interceptor) {
       var onEnd = arguments[1] === undefined ? true : arguments[1];
@@ -5986,6 +5996,14 @@ var Request = (function () {
 
       return promise;
     }
+  }, {
+    key: 'url',
+    set: function (url) {
+      this._url = (0, _utils.normalizeUrl)(url);
+    },
+    get: function () {
+      return (0, _utils.normalizeUrl)(this._url);
+    }
   }]);
 
   return Request;
@@ -5993,7 +6011,7 @@ var Request = (function () {
 
 exports.Request = Request;
 
-},{"../core/baseInterceptors/":45,"./response":52,"./utils":55}],52:[function(require,module,exports){
+},{"../core/baseInterceptors/":45,"./response":51,"./utils":54}],51:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6031,7 +6049,7 @@ var Response = (function () {
 
 exports.Response = Response;
 
-},{"lodash/lang/isObject":25}],53:[function(require,module,exports){
+},{"lodash/lang/isObject":25}],52:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6067,19 +6085,9 @@ var RestClient = (function () {
   }
 
   _createClass(RestClient, [{
-    key: 'baseUrl',
-    set: function (baseUrl) {
-      this._baseUrl = baseUrl;
-    }
-  }, {
     key: 'addHeader',
     value: function addHeader(field, val) {
       this._headers[field] = val;
-    }
-  }, {
-    key: 'http',
-    set: function (http) {
-      this._http = http;
     }
   }, {
     key: 'addInterceptor',
@@ -6116,6 +6124,16 @@ var RestClient = (function () {
 
       return this._cache[resourceName];
     }
+  }, {
+    key: 'baseUrl',
+    set: function (baseUrl) {
+      this._baseUrl = baseUrl;
+    }
+  }, {
+    key: 'http',
+    set: function (http) {
+      this._http = http;
+    }
   }]);
 
   return RestClient;
@@ -6123,7 +6141,7 @@ var RestClient = (function () {
 
 exports.RestClient = RestClient;
 
-},{"./http":49,"./restResource":54,"lodash/object/assign":26}],54:[function(require,module,exports){
+},{"./http":48,"./restResource":53,"lodash/object/assign":26}],53:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6249,7 +6267,7 @@ var RestResource = (function () {
 
 exports.RestResource = RestResource;
 
-},{"./http":49,"./request":51,"lodash/lang/isObject":25,"uri-template":40}],55:[function(require,module,exports){
+},{"./http":48,"./request":50,"lodash/lang/isObject":25,"uri-template":40}],54:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6278,5 +6296,10 @@ function normalizeUrl(url) {
   }
 }
 
-},{"normalize-url":31}]},{},[48])(48)
+},{"normalize-url":31}],55:[function(require,module,exports){
+(function (global){
+"use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),o=0;o<t.length;o++){var i=t[o],n=Object.getOwnPropertyDescriptor(r,i);n&&n.configurable&&void 0===e[i]&&Object.defineProperty(e,i,n)}return e}Object.defineProperty(exports,"__esModule",{value:!0}),global.Promise=require("yaku");var _restClient=require("./restClient/");_defaults(exports,_interopRequireWildcard(_restClient));var _coreBaseInterceptors=require("./core/baseInterceptors");_defaults(exports,_interopRequireWildcard(_coreBaseInterceptors));
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./core/baseInterceptors":45,"./restClient/":49,"yaku":44}]},{},[55])(55)
 });
