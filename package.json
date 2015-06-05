@@ -7,7 +7,8 @@
     "normalize-url": "^1.2.0",
     "superagent": "^1.2.0",
     "superagent-es6-promise": "^1.0.0",
-    "uri-template": "^1.0.0"
+    "uri-template": "^1.0.0",
+    "yaku": "^0.2.0"
   },
   "engine": "node >= 0.12.0",
   "devDependencies": {
@@ -15,6 +16,7 @@
     "babelify": "^6.0.2",
     "browserify": "^9.0.8",
     "chai": "^3.0.0",
+    "envify": "^3.4.0",
     "minifyify": "^7.0.0",
     "mocha": "^2.2.5",
     "mocha-unfunk-reporter": "^0.4.0"
@@ -23,10 +25,12 @@
   "scripts": {
     "test": "mocha --recursive --compilers js:babel/register -R mocha-unfunk-reporter",
     "clean": "rm -rf build/* && mkdir  -p build/{node,browser}",
-    "build-node": "babel -d build/node src/",
-    "build-browser": "browserify src/index.js --standalone vador -t babelify > build/browser/vador.js",
-    "build-browser-min": "browserify src/index.js -d -p [minifyify --no-map] --standalone vador -t babelify  > build/browser/vador.min.js",
-    "build": "npm run clean && npm run build-node && npm run build-browser && npm run build-browser-min"
+    "build:node": "babel -d build/node src/ && rm build/node/index-browser.js",
+    "build:browser": "browserify src/index.js --standalone vador -t babelify -t  [ envify --TYPE_BUILD noYaku ] -t [ uglifyify --ignore '**/{core,restClient}/*' ]> build/browser/vador.js",
+    "build:browser:min": "browserify src/index.js -g uglifyify --standalone vador -t babelify -t  [ envify --TYPE_BUILD noYaku ] -t > build/browser/vador.min.js",
+    "build:yaku:browser": "browserify src/index.js --standalone vador -t babelify -t  [ envify --TYPE_BUILD yaku ] -t [ uglifyify --ignore '**/{core,restClient}/*' ]> build/browser/vador.yaku.js",
+    "build:yaku:browser:min": "browserify src/index.js -g uglifyify --standalone vador -t babelify -t  [ envify --TYPE_BUILD yaku ] > build/browser/vador.yaku.min.js",
+    "build": "npm run clean && npm run build:node && npm run build:browser && npm run build:browser:min && npm run build:yaku:browser && npm run build:yaku:browser:min"
   },
   "repository": {
     "type": "git",
@@ -39,6 +43,9 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/eyolas/vador/issues"
+  },
+  "browser": {
+    "./src/index.js": "./src/index-browser.js"
   },
   "homepage": "https://github.com/eyolas/vador#readme"
 }

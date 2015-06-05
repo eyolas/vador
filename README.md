@@ -5,4 +5,8 @@ rest client es6
 
 
 ## For browser
-vador need promise. Include [polyfill](https://www.promisejs.org/#browser)
+vador need promise. 
+
+2 choices:
+ - Include a polyfill (ex: [polyfill](https://www.promisejs.org/#browser))
+ - use vador.yaku.js (include [yaku](https://github.com/ysmood/yaku));
