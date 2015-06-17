@@ -2448,6 +2448,7 @@ module.exports = function (obj, compareFn) {
 },{}],36:[function(require,module,exports){
 // So you can `var request = require("superagent-es6-promise")`
 var superagent = module.exports = require("superagent");
+superagent.Promise = Promise;
 var Request = superagent.Request;
 
 // Create custom error type.
@@ -2472,23 +2473,22 @@ SuperagentPromiseError.prototype.constructor = SuperagentPromiseError;
  * Call .promise() to return promise for the request
  *
  * @method then
- * @return {Bluebird.Promise}
+ * @return {Promise}
  */
 Request.prototype.promise = function() {
   var req = this;
   var error;
 
-  return new Promise(function(resolve, reject) {
+  return new superagent.Promise(function(resolve, reject) {
       req.end(function(err, res) {
-        if (typeof res !== "undefined" && res.status >= 400) {
-          var msg = 'cannot ' + req.method + ' ' + req.url + ' (' + res.status + ')';
-          error = new SuperagentPromiseError(msg);
-          error.status = res.status;
-          error.body = res.body;
-          error.res = res;
+        if (err) {
+          error = new SuperagentPromiseError(err);
+          if (res) {
+            error.status = res.status;
+            error.body = res.body;
+            error.res = res;
+          }
           reject(error);
-        } else if (err) {
-          reject(new SuperagentPromiseError(err));
         } else {
           resolve(res);
         }
@@ -5015,7 +5015,7 @@ module.exports = function pctEncode(regexp) {
 },{}],44:[function(require,module,exports){
 (function (__filename){
 /*
- Yaku v0.2.0
+ Yaku v0.2.1
  (c) 2015 Yad Smood. http://ysmood.org
  License MIT
 */
@@ -5250,24 +5250,26 @@ module.exports = function pctEncode(regexp) {
      */
 
     Yaku.onUnhandledRejection = function(reason, p) {
-      var format, hStack;
+      var stackInfo, stackStr;
       if (!isObject(console)) {
         return;
       }
-      hStack = '\n';
+      stackInfo = [(reason ? reason.stack ? reason.stack.trim() : reason : reason)];
       if (isLongStackTrace && p[$promiseTrace]) {
         if (p[$settlerTrace]) {
-          hStack += p[$settlerTrace];
+          stackInfo.push(p[$settlerTrace].trim());
         }
         while (p) {
-          hStack += p[$promiseTrace];
+          stackInfo.push(p[$promiseTrace].trim());
           p = p._pre;
         }
       }
-      format = function(str) {
-        return (typeof __filename === 'string' ? str.replace(RegExp(".+" + __filename + ".+\\n?", "g"), '') : str).replace(/\n$/, '');
-      };
-      return console.error('Unhandled Rejection:', (reason ? reason.stack ? format(reason.stack) : reason : reason), format(hStack));
+      stackStr = stackInfo.join('\n');
+      if (typeof __filename === 'string') {
+        stackStr = stackStr.replace(RegExp(".+" + __filename + ".+\\n?", "g"), '');
+      }
+      console.error('Unhandled Rejection:', stackStr);
+      return stackInfo;
     };
 
     isLongStackTrace = false;
@@ -5463,7 +5465,7 @@ module.exports = function pctEncode(regexp) {
     };
 
     genTraceInfo = function(noTitle) {
-      return (new Error).stack.replace('Error\n', (noTitle ? '' : ' From previous event:\n'));
+      return (new Error).stack.replace('Error', (noTitle ? '' : 'From previous event:'));
     };
 
 
@@ -5497,8 +5499,6 @@ module.exports = function pctEncode(regexp) {
     Yaku.prototype._pCount = 0;
 
     Yaku.prototype._pre = null;
-
-    Yaku.prototype._hasUnhandled = false;
 
 
     /**
@@ -5580,16 +5580,24 @@ module.exports = function pctEncode(regexp) {
     });
 
     scheduleUnhandledRejection = genScheduler(100, function(p) {
-      var pre;
-      pre = p;
-      while (pre) {
-        if (pre._hasUnhandled) {
+      var iter;
+      iter = function(node) {
+        var i, len;
+        i = 0;
+        len = node._pCount;
+        if (node._onRejected) {
           return;
         }
-        pre._hasUnhandled = true;
-        pre = pre._pre;
+        while (i < len) {
+          if (!iter(node[i++])) {
+            return;
+          }
+        }
+        return true;
+      };
+      if (iter(p)) {
+        Yaku.onUnhandledRejection(p._value, p);
       }
-      Yaku.onUnhandledRejection(p._value, p);
     });
 
     callHanler = function(handler, value) {
@@ -5612,14 +5620,13 @@ module.exports = function pctEncode(regexp) {
       }
       p._state = state;
       p._value = value;
-      if (state === $rejected) {
+      if (state === $rejected && (!p._pre || p._pre._state === $resolved)) {
         scheduleUnhandledRejection(p);
       }
       i = 0;
       len = p._pCount;
       while (i < len) {
-        scheduleHandler(p, p[i]);
-        release(p, i++);
+        scheduleHandler(p, p[i++]);
       }
       return p;
     };
@@ -5646,7 +5653,8 @@ module.exports = function pctEncode(regexp) {
         }
         if (isFunction(xthen)) {
           if (x instanceof Yaku) {
-            x._pre = p;
+            x._pre = p._pre;
+            p._pre = x;
           }
           settleXthen(p, x, xthen);
         } else {
@@ -5728,6 +5736,49 @@ module.exports = function pctEncode(regexp) {
 "use strict";function _classCallCheck(e,n){if(!(e instanceof n))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,n){for(var r=0;r<n.length;r++){var t=n[r];t.enumerable=t.enumerable||!1,t.configurable=!0,"value"in t&&(t.writable=!0),Object.defineProperty(e,t.key,t)}}return function(n,r,t){return r&&e(n.prototype,r),t&&e(n,t),n}}(),ResponseInterceptor=function(){function e(){_classCallCheck(this,e)}return _createClass(e,[{key:"response",value:function(e){}},{key:"responseError",value:function(e){}}]),e}();exports.ResponseInterceptor=ResponseInterceptor;
 
 },{}],48:[function(require,module,exports){
+"use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),i=0;i<t.length;i++){var o=t[i],n=Object.getOwnPropertyDescriptor(r,o);n&&n.configurable&&void 0===e[o]&&Object.defineProperty(e,o,n)}return e}Object.defineProperty(exports,"__esModule",{value:!0});var _restClientConfig=require("./restClient/config");_restClientConfig.config.Promise=require("yaku"),exports.config=_restClientConfig.config;var _restClient=require("./restClient/");_defaults(exports,_interopRequireWildcard(_restClient));var _coreBaseInterceptors=require("./core/baseInterceptors");_defaults(exports,_interopRequireWildcard(_coreBaseInterceptors));
+
+},{"./core/baseInterceptors":45,"./restClient/":51,"./restClient/config":49,"yaku":44}],49:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+var _utils = require('./utils');
+
+var Config = (function () {
+  function Config() {
+    _classCallCheck(this, Config);
+
+    this._promise = Promise;
+  }
+
+  _createClass(Config, [{
+    key: 'Promise',
+    set: function (promise) {
+      if (!(0, _utils.isPromise)(promise)) {
+        throw new Error('Promise must be a promise');
+      } else {
+        this._promise = promise;
+      }
+    },
+    get: function () {
+      return this._promise;
+    }
+  }]);
+
+  return Config;
+})();
+
+var config = new Config();
+exports.config = config;
+
+},{"./utils":56}],50:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5740,11 +5791,13 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _superagentEs6Promise = require('superagent-es6-promise');
+var _superagentInterfacePromise = require('superagent-interface-promise');
 
-var _superagentEs6Promise2 = _interopRequireDefault(_superagentEs6Promise);
+var _superagentInterfacePromise2 = _interopRequireDefault(_superagentInterfacePromise);
 
 var _utils = require('./utils');
+
+var _config = require('./config');
 
 var Http = (function () {
   function Http() {
@@ -5754,7 +5807,8 @@ var Http = (function () {
   _createClass(Http, [{
     key: 'request',
     value: function request(_request) {
-      var r = (0, _superagentEs6Promise2['default'])(_request.method, _request.url);
+      _superagentInterfacePromise2['default'].Promise = _config.config.Promise;
+      var r = (0, _superagentInterfacePromise2['default'])(_request.method, _request.url);
 
       Object.keys(_request.headers).forEach(function (header) {
         return r.set(header, _request.headers[header]);
@@ -5776,7 +5830,7 @@ var Http = (function () {
 
 exports.Http = Http;
 
-},{"./utils":54,"superagent-es6-promise":36}],49:[function(require,module,exports){
+},{"./config":49,"./utils":56,"superagent-interface-promise":36}],51:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5803,7 +5857,11 @@ var _restResource = require('./restResource');
 
 _defaults(exports, _interopRequireWildcard(_restResource));
 
-},{"./request":50,"./response":51,"./restClient":52,"./restResource":53}],50:[function(require,module,exports){
+var _config = require('./config');
+
+_defaults(exports, _interopRequireWildcard(_config));
+
+},{"./config":49,"./request":52,"./response":53,"./restClient":54,"./restResource":55}],52:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5819,6 +5877,8 @@ var _utils = require('./utils');
 var _response = require('./response');
 
 var _coreBaseInterceptors = require('../core/baseInterceptors/');
+
+var _config = require('./config');
 
 var Request = (function () {
   function Request(baseUrl, resourceName, restResource) {
@@ -5962,6 +6022,13 @@ var Request = (function () {
             }
           }
           return new _response.Response(value, result, request);
+        }, function (error) {
+          console.log('ici LOL', error);
+          if (error.status && error.status == 404) {
+            return new _response.Response(null, error.res, request);
+          } else {
+            return _config.config.Promise.reject(error);
+          }
         });
       };
 
@@ -5979,7 +6046,7 @@ var Request = (function () {
         });
       }
 
-      var promise = Promise.resolve(this);
+      var promise = _config.config.Promise.resolve(this);
       while (chain.length) {
         var thenFn = chain.shift();
         var rejectFn = chain.shift();
@@ -6011,7 +6078,7 @@ var Request = (function () {
 
 exports.Request = Request;
 
-},{"../core/baseInterceptors/":45,"./response":51,"./utils":54}],51:[function(require,module,exports){
+},{"../core/baseInterceptors/":45,"./config":49,"./response":53,"./utils":56}],53:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6049,7 +6116,7 @@ var Response = (function () {
 
 exports.Response = Response;
 
-},{"lodash/lang/isObject":25}],52:[function(require,module,exports){
+},{"lodash/lang/isObject":25}],54:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6141,7 +6208,7 @@ var RestClient = (function () {
 
 exports.RestClient = RestClient;
 
-},{"./http":48,"./restResource":53,"lodash/object/assign":26}],53:[function(require,module,exports){
+},{"./http":50,"./restResource":55,"lodash/object/assign":26}],55:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6267,7 +6334,7 @@ var RestResource = (function () {
 
 exports.RestResource = RestResource;
 
-},{"./http":48,"./request":50,"lodash/lang/isObject":25,"uri-template":40}],54:[function(require,module,exports){
+},{"./http":50,"./request":52,"lodash/lang/isObject":25,"uri-template":40}],56:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -6275,6 +6342,7 @@ Object.defineProperty(exports, '__esModule', {
 });
 exports.isNotEmpty = isNotEmpty;
 exports.normalizeUrl = normalizeUrl;
+exports.isPromise = isPromise;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -6284,9 +6352,24 @@ var _normalizeUrl2 = _interopRequireDefault(_normalizeUrl);
 
 var IS_ABSOLUTE = /^http.*/;
 
+/**
+ * Check if `arr` is not empty
+ *  - null return false
+ *  - {} return false
+ *  - [] return false
+ * @param  {Mixed}  arr
+ * @return {Boolean}
+ */
+
 function isNotEmpty(arr) {
   return arr && Array.isArray(arr) && arr.length;
 }
+
+/**
+ * Normalize an url.
+ * @param  {String} url
+ * @return {String}
+ */
 
 function normalizeUrl(url) {
   if (!IS_ABSOLUTE.test(url)) {
@@ -6296,10 +6379,16 @@ function normalizeUrl(url) {
   }
 }
 
-},{"normalize-url":31}],55:[function(require,module,exports){
-(function (global){
-"use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),o=0;o<t.length;o++){var i=t[o],n=Object.getOwnPropertyDescriptor(r,i);n&&n.configurable&&void 0===e[i]&&Object.defineProperty(e,i,n)}return e}Object.defineProperty(exports,"__esModule",{value:!0}),global.Promise=require("yaku");var _restClient=require("./restClient/");_defaults(exports,_interopRequireWildcard(_restClient));var _coreBaseInterceptors=require("./core/baseInterceptors");_defaults(exports,_interopRequireWildcard(_coreBaseInterceptors));
+/**
+ * Check if `obj` is a generator.
+ *
+ * @param {Mixed} obj
+ * @return {Boolean}
+ */
 
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./core/baseInterceptors":45,"./restClient/":49,"yaku":44}]},{},[55])(55)
+function isPromise(obj) {
+  return 'function' == typeof obj.resolve;
+}
+
+},{"normalize-url":31}]},{},[48])(48)
 });

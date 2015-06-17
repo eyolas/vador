@@ -5,6 +5,7 @@ Object.defineProperty(exports, '__esModule', {
 });
 exports.isNotEmpty = isNotEmpty;
 exports.normalizeUrl = normalizeUrl;
+exports.isPromise = isPromise;
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -14,9 +15,24 @@ var _normalizeUrl2 = _interopRequireDefault(_normalizeUrl);
 
 var IS_ABSOLUTE = /^http.*/;
 
+/**
+ * Check if `arr` is not empty
+ *  - null return false
+ *  - {} return false
+ *  - [] return false
+ * @param  {Mixed}  arr
+ * @return {Boolean}
+ */
+
 function isNotEmpty(arr) {
   return arr && Array.isArray(arr) && arr.length;
 }
+
+/**
+ * Normalize an url.
+ * @param  {String} url
+ * @return {String}
+ */
 
 function normalizeUrl(url) {
   if (!IS_ABSOLUTE.test(url)) {
@@ -24,4 +40,15 @@ function normalizeUrl(url) {
   } else {
     return (0, _normalizeUrl2['default'])(url);
   }
+}
+
+/**
+ * Check if `obj` is a generator.
+ *
+ * @param {Mixed} obj
+ * @return {Boolean}
+ */
+
+function isPromise(obj) {
+  return 'function' == typeof obj.resolve;
 }

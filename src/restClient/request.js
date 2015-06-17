@@ -1,6 +1,7 @@
 import {isNotEmpty, normalizeUrl} from './utils';
 import {Response} from './response';
 import {ResponseInterceptor, RequestInterceptor} from '../core/baseInterceptors/'
+import {config} from './config';
 
 export class Request {
   constructor(baseUrl, resourceName, restResource, config = {}) {
@@ -121,6 +122,12 @@ export class Request {
             }
           }
           return new Response(value, result, request);
+        }, error => {
+          if (error.status && error.status == 404) {
+            return new Response(null, error.res, request);
+          } else {
+            return config.Promise.reject(error);
+          }
         });
     }
 
@@ -144,7 +151,7 @@ export class Request {
       });
     }
 
-    var promise = Promise.resolve(this);
+    var promise = config.Promise.resolve(this);
     while (chain.length) {
       let thenFn = chain.shift();
       let rejectFn = chain.shift();
@@ -153,7 +160,7 @@ export class Request {
     }
 
     promise = promise.then((res) => {
-      if (withProxy) {
+      if (withProxy && res.value) {
         res.value = this.proxify(res);
       }
       return res;

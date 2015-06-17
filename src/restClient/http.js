@@ -1,9 +1,11 @@
-import superagent from 'superagent-es6-promise';
+import superagent from 'superagent-interface-promise';
 import {isNotEmpty} from './utils';
+import {config} from './config';
 
 export class Http {
 
   request(request) {
+    superagent.Promise = config.Promise;
     var r = superagent(request.method, request.url);
 
     Object.keys(request.headers)

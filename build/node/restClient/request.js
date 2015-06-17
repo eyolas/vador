@@ -14,6 +14,8 @@ var _response = require('./response');
 
 var _coreBaseInterceptors = require('../core/baseInterceptors/');
 
+var _config = require('./config');
+
 var Request = (function () {
   function Request(baseUrl, resourceName, restResource) {
     var config = arguments[3] === undefined ? {} : arguments[3];
@@ -156,6 +158,13 @@ var Request = (function () {
             }
           }
           return new _response.Response(value, result, request);
+        }, function (error) {
+          console.log('ici LOL', error);
+          if (error.status && error.status == 404) {
+            return new _response.Response(null, error.res, request);
+          } else {
+            return _config.config.Promise.reject(error);
+          }
         });
       };
 
@@ -173,7 +182,7 @@ var Request = (function () {
         });
       }
 
-      var promise = Promise.resolve(this);
+      var promise = _config.config.Promise.resolve(this);
       while (chain.length) {
         var thenFn = chain.shift();
         var rejectFn = chain.shift();

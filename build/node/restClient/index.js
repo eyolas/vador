@@ -23,3 +23,7 @@ _defaults(exports, _interopRequireWildcard(_response));
 var _restResource = require('./restResource');
 
 _defaults(exports, _interopRequireWildcard(_restResource));
+
+var _config = require('./config');
+
+_defaults(exports, _interopRequireWildcard(_config));
