@@ -5309,7 +5309,6 @@ var Request = (function () {
           }
           return new _response.Response(value, result, request);
         }, function (error) {
-          console.log('ici LOL', error);
           if (error.status && error.status == 404) {
             return new _response.Response(null, error.res, request);
           } else {
@@ -5341,7 +5340,7 @@ var Request = (function () {
       }
 
       promise = promise.then(function (res) {
-        if (withProxy) {
+        if (withProxy && res.value) {
           res.value = _this3.proxify(res);
         }
         return res;
