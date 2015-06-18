@@ -43,12 +43,12 @@ function normalizeUrl(url) {
 }
 
 /**
- * Check if `obj` is a generator.
+ * Check if `obj` is a promise.
  *
  * @param {Mixed} obj
  * @return {Boolean}
  */
 
 function isPromise(obj) {
-  return 'function' == typeof obj.resolve;
+  return 'function' == typeof obj.all;
 }
