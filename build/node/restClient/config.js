@@ -10,11 +10,34 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var _utils = require('./utils');
 
+function getLocalPromise() {
+  var local = undefined;
+
+  if (typeof global !== 'undefined') {
+    local = global;
+  } else if (typeof self !== 'undefined') {
+    local = self;
+  } else {
+    try {
+      local = Function('return this')();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  var P = local.Promise;
+  if (!(0, _utils.isPromise)(P)) {
+    return null;
+  }
+
+  return P;
+}
+
 var Config = (function () {
   function Config() {
     _classCallCheck(this, Config);
 
-    this._promise = Promise;
+    this._promise = getLocalPromise();
   }
 
   _createClass(Config, [{
@@ -27,6 +50,9 @@ var Config = (function () {
       }
     },
     get: function () {
+      if (!(0, _utils.isPromise)(this._promise)) {
+        throw new Error('No promise exist');
+      }
       return this._promise;
     }
   }]);

@@ -1,6 +1,6 @@
 {
   "name": "vador",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "rest client",
   "dependencies": {
     "interfake": "^1.13.0",

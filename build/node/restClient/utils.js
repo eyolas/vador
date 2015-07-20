@@ -50,5 +50,5 @@ function normalizeUrl(url) {
  */
 
 function isPromise(obj) {
-  return 'function' == typeof obj.all;
+  return obj && 'function' == typeof obj.all;
 }

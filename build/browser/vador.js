@@ -5025,6 +5025,7 @@ module.exports = function pctEncode(regexp) {
 "use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),i=0;i<t.length;i++){var o=t[i],n=Object.getOwnPropertyDescriptor(r,o);n&&n.configurable&&void 0===e[o]&&Object.defineProperty(e,o,n)}return e}Object.defineProperty(exports,"__esModule",{value:!0});var _restClientConfig=require("./restClient/config");exports.config=_restClientConfig.config;var _restClient=require("./restClient/");_defaults(exports,_interopRequireWildcard(_restClient));var _coreBaseInterceptors=require("./core/baseInterceptors");_defaults(exports,_interopRequireWildcard(_coreBaseInterceptors));
 
 },{"./core/baseInterceptors":44,"./restClient/":50,"./restClient/config":48}],48:[function(require,module,exports){
+(function (global){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -5037,11 +5038,34 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var _utils = require('./utils');
 
+function getLocalPromise() {
+  var local = undefined;
+
+  if (typeof global !== 'undefined') {
+    local = global;
+  } else if (typeof self !== 'undefined') {
+    local = self;
+  } else {
+    try {
+      local = Function('return this')();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  var P = local.Promise;
+  if (!(0, _utils.isPromise)(P)) {
+    return null;
+  }
+
+  return P;
+}
+
 var Config = (function () {
   function Config() {
     _classCallCheck(this, Config);
 
-    this._promise = Promise;
+    this._promise = getLocalPromise();
   }
 
   _createClass(Config, [{
@@ -5054,6 +5078,9 @@ var Config = (function () {
       }
     },
     get: function () {
+      if (!(0, _utils.isPromise)(this._promise)) {
+        throw new Error('No promise exist');
+      }
       return this._promise;
     }
   }]);
@@ -5064,6 +5091,7 @@ var Config = (function () {
 var config = new Config();
 exports.config = config;
 
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./utils":55}],49:[function(require,module,exports){
 'use strict';
 
@@ -5672,7 +5700,7 @@ function normalizeUrl(url) {
  */
 
 function isPromise(obj) {
-  return 'function' == typeof obj.all;
+  return obj && 'function' == typeof obj.all;
 }
 
 },{"normalize-url":31}]},{},[47])(47)
