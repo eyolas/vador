@@ -34,5 +34,5 @@ export function normalizeUrl(url) {
  * @return {Boolean}
  */
 export function isPromise(obj) {
-  return 'function' == typeof obj.all;
+  return obj && 'function' == typeof obj.all;
 }
