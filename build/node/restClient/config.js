@@ -42,14 +42,14 @@ var Config = (function () {
 
   _createClass(Config, [{
     key: 'Promise',
-    set: function (promise) {
+    set: function set(promise) {
       if (!(0, _utils.isPromise)(promise)) {
         throw new Error('Promise must be a promise');
       } else {
         this._promise = promise;
       }
     },
-    get: function () {
+    get: function get() {
       if (!(0, _utils.isPromise)(this._promise)) {
         throw new Error('No promise exist');
       }

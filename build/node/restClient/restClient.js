@@ -20,7 +20,7 @@ var _lodashObjectAssign2 = _interopRequireDefault(_lodashObjectAssign);
 
 var RestClient = (function () {
   function RestClient(baseUrl) {
-    var config = arguments[1] === undefined ? {} : arguments[1];
+    var config = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
     _classCallCheck(this, RestClient);
 
@@ -40,7 +40,7 @@ var RestClient = (function () {
   }, {
     key: 'addInterceptor',
     value: function addInterceptor(interceptor) {
-      var onEnd = arguments[1] === undefined ? true : arguments[1];
+      var onEnd = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
 
       if (onEnd) {
         this._interceptors.push(interceptor);
@@ -56,7 +56,7 @@ var RestClient = (function () {
   }, {
     key: 'resource',
     value: function resource(resourceName) {
-      var config = arguments[1] === undefined ? {} : arguments[1];
+      var config = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
       if (!this._cache[resourceName]) {
         var conf = (0, _lodashObjectAssign2['default'])({}, this._config);
@@ -74,12 +74,12 @@ var RestClient = (function () {
     }
   }, {
     key: 'baseUrl',
-    set: function (baseUrl) {
+    set: function set(baseUrl) {
       this._baseUrl = baseUrl;
     }
   }, {
     key: 'http',
-    set: function (http) {
+    set: function set(http) {
       this._http = http;
     }
   }]);

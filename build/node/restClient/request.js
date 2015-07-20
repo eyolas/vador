@@ -18,7 +18,7 @@ var _config = require('./config');
 
 var Request = (function () {
   function Request(baseUrl, resourceName, restResource) {
-    var config = arguments[3] === undefined ? {} : arguments[3];
+    var config = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
 
     _classCallCheck(this, Request);
 
@@ -43,7 +43,7 @@ var Request = (function () {
   _createClass(Request, [{
     key: 'addInterceptor',
     value: function addInterceptor(interceptor) {
-      var onEnd = arguments[1] === undefined ? true : arguments[1];
+      var onEnd = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
 
       if (onEnd) {
         this._interceptors.push(interceptor);
@@ -145,7 +145,7 @@ var Request = (function () {
     value: function sendRequest() {
       var _this3 = this;
 
-      var withProxy = arguments[0] === undefined ? true : arguments[0];
+      var withProxy = arguments.length <= 0 || arguments[0] === undefined ? true : arguments[0];
 
       var _request = function _request(request) {
         return _this3._http.request(request).then(function (result) {
@@ -200,10 +200,10 @@ var Request = (function () {
     }
   }, {
     key: 'url',
-    set: function (url) {
+    set: function set(url) {
       this._url = (0, _utils.normalizeUrl)(url);
     },
-    get: function () {
+    get: function get() {
       return (0, _utils.normalizeUrl)(this._url);
     }
   }]);

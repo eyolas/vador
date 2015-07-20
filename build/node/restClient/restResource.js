@@ -24,7 +24,7 @@ var RestResource = (function () {
   function RestResource(baseUrl, resourceName) {
     var _this = this;
 
-    var config = arguments[2] === undefined ? {} : arguments[2];
+    var config = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
     _classCallCheck(this, RestResource);
 
@@ -54,7 +54,7 @@ var RestResource = (function () {
 
           _this[method] = (function (url, type) {
             return function () {
-              var obj = arguments[0] === undefined ? {} : arguments[0];
+              var obj = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
               var addUrl = url.expand(obj);
 
@@ -69,9 +69,9 @@ var RestResource = (function () {
   _createClass(RestResource, [{
     key: 'constructBaseRequest',
     value: function constructBaseRequest() {
-      var method = arguments[0] === undefined ? 'get' : arguments[0];
-      var responseType = arguments[1] === undefined ? Array : arguments[1];
-      var addUrl = arguments[2] === undefined ? '' : arguments[2];
+      var method = arguments.length <= 0 || arguments[0] === undefined ? 'get' : arguments[0];
+      var responseType = arguments.length <= 1 || arguments[1] === undefined ? Array : arguments[1];
+      var addUrl = arguments.length <= 2 || arguments[2] === undefined ? '' : arguments[2];
 
       var request = new _request.Request(this._baseUrl, this.resourceName, this, this._config);
       request.responseType = responseType;
