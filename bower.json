@@ -1,12 +1,12 @@
 {
-  "name": "vador",
-  "version": "1.4.4",
-  "homepage": "https://github.com/eyolas/vador",
+  "name": "vader",
+  "version": "1.0.0",
+  "homepage": "https://github.com/eyolas/vader",
   "authors": [
     "David Touzet <dtouzet@gmail.com>"
   ],
   "description": "rest client",
-  "main": "build/browser/vador.js",
+  "main": "build/browser/vader.js",
   "keywords": [
     "rest"
   ],

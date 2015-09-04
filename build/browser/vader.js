@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.vador = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.vader = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (global){
 /*! https://mths.be/punycode v1.3.2 by @mathias */
 ;(function(root) {
@@ -1431,7 +1431,7 @@ var nativeMax = Math.max;
  * Creates a function that invokes `func` with the `this` binding of the
  * created function and arguments from `start` and beyond provided as an array.
  *
- * **Note:** This method is based on the [rest parameter](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters).
+ * **Note:** This method is based on the [rest parameter](https://developer.mozilla.org/Web/JavaScript/Reference/Functions/rest_parameters).
  *
  * @static
  * @memberOf _
@@ -1959,7 +1959,7 @@ var objToString = objectProto.toString;
 function isFunction(value) {
   // The use of `Object#toString` avoids issues with the `typeof` operator
   // in older versions of Chrome and Safari which return 'function' for regexes
-  // and Safari 8 equivalents which return 'object' for typed array constructors.
+  // and Safari 8 which returns 'object' for typed array constructors.
   return isObject(value) && objToString.call(value) == funcTag;
 }
 
@@ -2053,7 +2053,7 @@ var assignWith = require('../internal/assignWith'),
 /**
  * Assigns own enumerable properties of source object(s) to the destination
  * object. Subsequent sources overwrite property assignments of previous sources.
- * If `customizer` is provided it is invoked to produce the assigned values.
+ * If `customizer` is provided it's invoked to produce the assigned values.
  * The `customizer` is bound to `thisArg` and invoked with five arguments:
  * (objectValue, sourceValue, key, object, source).
  *
@@ -2314,7 +2314,7 @@ module.exports = function (str, opts) {
 	return str;
 };
 
-},{"object-assign":31,"prepend-http":32,"punycode":1,"query-string":33,"sort-keys":34,"url":5}],31:[function(require,module,exports){
+},{"object-assign":31,"prepend-http":32,"punycode":1,"query-string":33,"sort-keys":35,"url":5}],31:[function(require,module,exports){
 'use strict';
 var propIsEnumerable = Object.prototype.propertyIsEnumerable;
 
@@ -2362,14 +2362,21 @@ module.exports = function (url) {
 		throw new TypeError('Expected a string');
 	}
 
-	return url.trim().replace(/^(?!(?:\w+:)?\/\/)/, 'http://');
+	url = url.trim();
+
+	if (/^\.*\//.test(url)) {
+		return url;
+	}
+
+	return url.replace(/^(?!(?:\w+:)?\/\/)/, 'http://');
 };
 
 },{}],33:[function(require,module,exports){
 'use strict';
+var strictUriEncode = require('strict-uri-encode');
 
-exports.extract = function (maybeUrl) {
-	return maybeUrl.split('?')[1] || '';
+exports.extract = function (str) {
+	return str.split('?')[1] || '';
 };
 
 exports.parse = function (str) {
@@ -2389,6 +2396,7 @@ exports.parse = function (str) {
 		var val = parts[1];
 
 		key = decodeURIComponent(key);
+
 		// missing `=` should be `null`:
 		// http://w3.org/TR/2012/WD-url-20120524/#collect-url-parameters
 		val = val === undefined ? null : decodeURIComponent(val);
@@ -2411,21 +2419,31 @@ exports.stringify = function (obj) {
 
 		if (Array.isArray(val)) {
 			return val.sort().map(function (val2) {
-				return encodeURIComponent(key) + '=' + encodeURIComponent(val2);
+				return strictUriEncode(key) + '=' + strictUriEncode(val2);
 			}).join('&');
 		}
 
-		return encodeURIComponent(key) + '=' + encodeURIComponent(val);
+		return strictUriEncode(key) + '=' + strictUriEncode(val);
+	}).filter(function (x) {
+		return x.length > 0;
 	}).join('&') : '';
 };
 
-},{}],34:[function(require,module,exports){
+},{"strict-uri-encode":34}],34:[function(require,module,exports){
 'use strict';
-var isObj = require('is-obj');
+module.exports = function (str) {
+	return encodeURIComponent(str).replace(/[!'()*]/g, function (c) {
+		return '%' + c.charCodeAt(0).toString(16);
+	});
+};
+
+},{}],35:[function(require,module,exports){
+'use strict';
+var isPlainObj = require('is-plain-obj');
 
 module.exports = function (obj, opts) {
-	if (!isObj(obj)) {
-		throw new TypeError('Expected an object');
+	if (!isPlainObj(obj)) {
+		throw new TypeError('Expected a plain object');
 	}
 
 	opts = opts || {};
@@ -2445,7 +2463,7 @@ module.exports = function (obj, opts) {
 			var key = keys[i];
 			var val = x[key];
 
-			ret[key] = deep && val !== x && isObj(val) ? sortKeys(val) : val;
+			ret[key] = deep && val !== x && isPlainObj(val) ? sortKeys(val) : val;
 		}
 
 		return ret;
@@ -2454,14 +2472,17 @@ module.exports = function (obj, opts) {
 	return sortKeys(obj);
 };
 
-},{"is-obj":35}],35:[function(require,module,exports){
+},{"is-plain-obj":36}],36:[function(require,module,exports){
 'use strict';
+var toString = Object.prototype.toString;
+var hasOwn = Object.prototype.hasOwnProperty;
+
 module.exports = function (x) {
-	var type = typeof x;
-	return x !== null && (type === 'object' || type === 'function');
+	var ctor;
+	return toString.call(x) === '[object Object]' && (ctor = x.constructor, hasOwn.call(x, 'constructor') || typeof ctor !== 'function' || ctor instanceof ctor);
 };
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 (function (global){
 // So you can `var request = require("superagent-es6-promise")`
 var superagent = module.exports = require("superagent");
@@ -2564,7 +2585,7 @@ Request.prototype.then = function() {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"superagent":37}],37:[function(require,module,exports){
+},{"superagent":38}],38:[function(require,module,exports){
 /**
  * Module dependencies.
  */
@@ -3054,7 +3075,7 @@ function Request(method, url) {
     new_err.response = res;
     new_err.status = res.status;
 
-    self.callback(err || new_err, res);
+    self.callback(new_err, res);
   });
 }
 
@@ -3527,7 +3548,8 @@ Request.prototype.end = function(fn){
   // body
   if ('GET' != this.method && 'HEAD' != this.method && 'string' != typeof data && !isHost(data)) {
     // serialize stuff
-    var serialize = request.serialize[this.getHeader('Content-Type')];
+    var contentType = this.getHeader('Content-Type');
+    var serialize = request.serialize[contentType ? contentType.split(';')[0] : ''];
     if (serialize) data = serialize(data);
   }
 
@@ -3542,6 +3564,20 @@ Request.prototype.end = function(fn){
   xhr.send(data);
   return this;
 };
+
+/**
+ * Faux promise support
+ *
+ * @param {Function} fulfill
+ * @param {Function} reject
+ * @return {Request}
+ */
+
+Request.prototype.then = function (fulfill, reject) {
+  return this.end(function(err, res) {
+    err ? reject(err) : fulfill(res);
+  });
+}
 
 /**
  * Expose `Request`.
@@ -3689,7 +3725,7 @@ request.put = function(url, data, fn){
 
 module.exports = request;
 
-},{"emitter":38,"reduce":39}],38:[function(require,module,exports){
+},{"emitter":39,"reduce":40}],39:[function(require,module,exports){
 
 /**
  * Expose `Emitter`.
@@ -3855,7 +3891,7 @@ Emitter.prototype.hasListeners = function(event){
   return !! this.listeners(event).length;
 };
 
-},{}],39:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 
 /**
  * Reduce `arr` with `fn`.
@@ -3880,7 +3916,7 @@ module.exports = function(arr, fn, initial){
   
   return curr;
 };
-},{}],40:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 module.exports = (function(){
   /*
    * Generated by PEG.js 0.7.0.
@@ -4607,7 +4643,7 @@ module.exports = (function(){
   return result;
 })();
 
-},{"./lib/classes":41}],41:[function(require,module,exports){
+},{"./lib/classes":42}],42:[function(require,module,exports){
 // Generated by CoffeeScript 1.6.3
 (function() {
   var FormContinuationExpression, FormStartExpression, FragmentExpression, LabelExpression, NamedExpression, PathParamExpression, PathSegmentExpression, ReservedExpression, SimpleExpression, Template, encoders, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7,
@@ -5026,7 +5062,7 @@ module.exports = (function(){
 
 }).call(this);
 
-},{"./encoders":42}],42:[function(require,module,exports){
+},{"./encoders":43}],43:[function(require,module,exports){
 // Generated by CoffeeScript 1.6.3
 (function() {
   var pctEncode;
@@ -5039,7 +5075,7 @@ module.exports = (function(){
 
 }).call(this);
 
-},{"pct-encode":43}],43:[function(require,module,exports){
+},{"pct-encode":44}],44:[function(require,module,exports){
 module.exports = function pctEncode(regexp) {
   regexp = regexp || /\W/g;
   return function encode(string) {
@@ -5064,766 +5100,8 @@ module.exports = function pctEncode(regexp) {
   }
 }
 
-},{}],44:[function(require,module,exports){
-(function (global,__filename){
-/*
- Yaku v0.2.9
- (c) 2015 Yad Smood. http://ysmood.org
- License MIT
-*/
-(function() {
-  var Yaku;
-  return Yaku = (function() {
-    'use strict';
-    var $circularChain, $fromPrevious, $invalid_argument, $nil, $noop, $pending, $promiseTrace, $rejected, $resolved, $settlerTrace, $tryCatchFn, $tryErr, addHandler, assertIterable, callHanler, genScheduler, genSettler, genStackInfo, genTraceInfo, genTryCatcher, genTypeError, getThen, isFunction, isLongStackTrace, isObject, newEmptyYaku, release, root, scheduleHandler, scheduleUnhandledRejection, settlePromise, settleWithX, settleXthen, tryCatcher;
-
-    root = typeof global === 'object' ? global : window;
-
-
-    /**
-    	 * This class follows the [Promises/A+](https://promisesaplus.com) and
-    	 * [ES6](http://people.mozilla.org/~jorendorff/es6-draft.html#sec-promise-objects) spec
-    	 * with some extra helpers.
-    	 * @param  {Function} executor Function object with two arguments resolve and reject.
-    	 * The first argument fulfills the promise, the second argument rejects it.
-    	 * We can call these functions, once our operation is completed.
-    	 * @example
-    	 * ```coffee
-    	 * Promise = require 'yaku'
-    	 * p = new Promise (resolve, reject) ->
-    	 * 	setTimeout ->
-    	 * 		if Math.random() > 0.5
-    	 * 			resolve 'ok'
-    	 * 		else
-    	 * 			reject 'no'
-    	 * ```
-     */
-
-    function Yaku(executor) {
-      var err;
-      if (isLongStackTrace) {
-        this[$promiseTrace] = genTraceInfo();
-      }
-      if (executor === $noop) {
-        return;
-      }
-      err = genTryCatcher(executor)(genSettler(this, $resolved), genSettler(this, $rejected));
-      if (err === $tryErr) {
-        settlePromise(this, $rejected, err.e);
-      }
-    }
-
-
-    /**
-    	 * Appends fulfillment and rejection handlers to the promise,
-    	 * and returns a new promise resolving to the return value of the called handler.
-    	 * @param  {Function} onFulfilled Optional. Called when the Promise is resolved.
-    	 * @param  {Function} onRejected  Optional. Called when the Promise is rejected.
-    	 * @return {Yaku} It will return a new Yaku which will resolve or reject after
-    	 * @example
-    	 * the current Promise.
-    	 * ```coffee
-    	 * Promise = require 'yaku'
-    	 * p = Promise.resolve 10
-    	 *
-    	 * p.then (v) ->
-    	 * 	console.log v
-    	 * ```
-     */
-
-    Yaku.prototype.then = function(onFulfilled, onRejected) {
-      return addHandler(this, newEmptyYaku(), onFulfilled, onRejected);
-    };
-
-
-    /**
-    	 * The `catch()` method returns a Promise and deals with rejected cases only.
-    	 * It behaves the same as calling `Promise.prototype.then(undefined, onRejected)`.
-    	 * @param  {Function} onRejected A Function called when the Promise is rejected.
-    	 * This function has one argument, the rejection reason.
-    	 * @return {Yaku} A Promise that deals with rejected cases only.
-    	 * @example
-    	 * ```coffee
-    	 * Promise = require 'yaku'
-    	 * p = Promise.reject 10
-    	 *
-    	 * p.catch (v) ->
-    	 * 	console.log v
-    	 * ```
-     */
-
-    Yaku.prototype["catch"] = function(onRejected) {
-      return this.then($nil, onRejected);
-    };
-
-
-    /**
-    	 * The `Promise.resolve(value)` method returns a Promise object that is resolved with the given value.
-    	 * If the value is a thenable (i.e. has a then method), the returned promise will "follow" that thenable,
-    	 * adopting its eventual state; otherwise the returned promise will be fulfilled with the value.
-    	 * @param  {Any} value Argument to be resolved by this Promise.
-    	 * Can also be a Promise or a thenable to resolve.
-    	 * @return {Yaku}
-    	 * @example
-    	 * ```coffee
-    	 * Promise = require 'yaku'
-    	 * p = Promise.resolve 10
-    	 * ```
-     */
-
-    Yaku.resolve = function(value) {
-      if (value instanceof Yaku) {
-        return value;
-      }
-      return settleWithX(newEmptyYaku(), value);
-    };
-
-
-    /**
-    	 * The `Promise.reject(reason)` method returns a Promise object that is rejected with the given reason.
-    	 * @param  {Any} reason Reason why this Promise rejected.
-    	 * @return {Yaku}
-    	 * @example
-    	 * ```coffee
-    	 * Promise = require 'yaku'
-    	 * p = Promise.reject 10
-    	 * ```
-     */
-
-    Yaku.reject = function(reason) {
-      return settlePromise(newEmptyYaku(), $rejected, reason);
-    };
-
-
-    /**
-    	 * The `Promise.race(iterable)` method returns a promise that resolves or rejects
-    	 * as soon as one of the promises in the iterable resolves or rejects,
-    	 * with the value or reason from that promise.
-    	 * @param  {iterable} iterable An iterable object, such as an Array.
-    	 * @return {Yaku} The race function returns a Promise that is settled
-    	 * the same way as the first passed promise to settle.
-    	 * It resolves or rejects, whichever happens first.
-    	 * @example
-    	 * ```coffee
-    	 * Promise = require 'yaku'
-    	 * Promise.race [
-    	 * 	123
-    	 * 	Promise.resolve 0
-    	 * ]
-    	 * .then (value) ->
-    	 * 	console.log value # => 123
-    	 * ```
-     */
-
-    Yaku.race = function(iterable) {
-      var i, len, p;
-      assertIterable(iterable);
-      len = iterable.length;
-      if (len === 0) {
-        return Yaku.resolve([]);
-      }
-      p = newEmptyYaku();
-      i = 0;
-      while (i < len) {
-        settleWithX(p, iterable[i++]);
-        if (p._state !== $pending) {
-          break;
-        }
-      }
-      return p;
-    };
-
-
-    /**
-    	 * The `Promise.all(iterable)` method returns a promise that resolves when
-    	 * all of the promises in the iterable argument have resolved.
-    	 *
-    	 * The result is passed as an array of values from all the promises.
-    	 * If something passed in the iterable array is not a promise,
-    	 * it's converted to one by Promise.resolve. If any of the passed in promises rejects,
-    	 * the all Promise immediately rejects with the value of the promise that rejected,
-    	 * discarding all the other promises whether or not they have resolved.
-    	 * @param  {iterable} iterable An iterable object, such as an Array.
-    	 * @return {Yaku}
-    	 * @example
-    	 * ```coffee
-    	 * Promise = require 'yaku'
-    	 * Promise.all [
-    	 * 	123
-    	 * 	Promise.resolve 0
-    	 * ]
-    	 * .then (values) ->
-    	 * 	console.log values # => [123, 0]
-    	 * ```
-     */
-
-    Yaku.all = function(iterable) {
-      var convertor, countDown, i, iter, len, onRejected, p1, res;
-      assertIterable(iterable);
-      convertor = Yaku.resolve;
-      len = countDown = iterable.length;
-      if (len === 0) {
-        return convertor([]);
-      }
-      p1 = newEmptyYaku();
-      res = [];
-      i = 0;
-      onRejected = function(reason) {
-        settlePromise(p1, $rejected, reason);
-      };
-      iter = function(i) {
-        convertor(iterable[i]).then(function(value) {
-          res[i] = value;
-          if (!--countDown) {
-            settlePromise(p1, $resolved, res);
-          }
-        }, onRejected);
-      };
-      while (i < len) {
-        iter(i++);
-      }
-      return p1;
-    };
-
-
-    /**
-    	 * Catch all possibly unhandled rejections. If you want to use specific
-    	 * format to display the error stack, overwrite it.
-    	 * If it is set, auto `console.error` unhandled rejection will be disabed.
-    	 * @param {Any} reason The rejection reason.
-    	 * @example
-    	 * ```coffee
-    	 * Promise = require 'yaku'
-    	 * Promise.onUnhandledRejection = (reason) ->
-    	 * 	console.error reason
-    	 *
-    	 * # The console will log an unhandled rejection error message.
-    	 * Promise.reject('my reason')
-    	 *
-    	 * # The below won't log the unhandled rejection error message.
-    	 * Promise.reject('v').catch ->
-    	 * ```
-     */
-
-    Yaku.onUnhandledRejection = function(reason, p) {
-      var info;
-      if (!isObject(console)) {
-        return;
-      }
-      info = genStackInfo(reason, p);
-      return console.error('Unhandled Rejection:', info[0], info[1]);
-    };
-
-    isLongStackTrace = false;
-
-
-    /**
-    	 * It is used to enable the long stack trace.
-    	 * Once it is enabled, it can't be reverted.
-    	 * While it is very helpful in development and testing environments,
-    	 * it is not recommended to use it in production. It will slow down your
-    	 * application and waste your memory.
-    	 * @example
-    	 * ```coffee
-    	 * Promise = require 'yaku'
-    	 * Promise.enableLongStackTrace()
-    	 * ```
-     */
-
-    Yaku.enableLongStackTrace = function() {
-      isLongStackTrace = true;
-    };
-
-
-    /*
-    	 * All static variable name will begin with `$`. Such as `$rejected`.
-    	 * @private
-     */
-
-    $tryCatchFn = null;
-
-    $tryErr = {
-      e: null
-    };
-
-    $noop = {};
-
-    $nil = void 0;
-
-    isObject = function(obj) {
-      return typeof obj === 'object';
-    };
-
-    isFunction = function(obj) {
-      return typeof obj === 'function';
-    };
-
-
-    /**
-    	 * Release the specified key of an object.
-    	 * @private
-    	 * @param  {Object} obj
-    	 * @param  {String | Number} key
-     */
-
-    release = function(obj, key) {
-      obj[key] = $nil;
-    };
-
-
-    /**
-    	 * Wrap a function into a try-catch.
-    	 * @private
-    	 * @return {Any | $tryErr}
-     */
-
-    tryCatcher = function() {
-      var e;
-      try {
-        return $tryCatchFn.apply(this, arguments);
-      } catch (_error) {
-        e = _error;
-        $tryErr.e = e;
-        return $tryErr;
-      }
-    };
-
-
-    /**
-    	 * Generate a try-catch wrapped function.
-    	 * @private
-    	 * @param  {Function} fn
-    	 * @return {Function}
-     */
-
-    genTryCatcher = function(fn) {
-      $tryCatchFn = fn;
-      return tryCatcher;
-    };
-
-
-    /**
-    	 * Generate a scheduler.
-    	 * @private
-    	 * @param  {Integer}  initQueueSize
-    	 * @param  {Function} fn `(Yaku, Value) ->` The schedule handler.
-    	 * @return {Function} `(Yaku, Value) ->` The scheduler.
-     */
-
-    genScheduler = function(initQueueSize, fn) {
-
-      /**
-      		 * All async promise will be scheduled in
-      		 * here, so that they can be execute on the next tick.
-      		 * @private
-       */
-      var flush, fnQueue, fnQueueLen, scheduleFlush;
-      fnQueue = Array(initQueueSize);
-      fnQueueLen = 0;
-
-      /**
-      		 * Run all queued functions.
-      		 * @private
-       */
-      flush = function() {
-        var i, p, pIndex, v, vIndex;
-        i = 0;
-        while (i < fnQueueLen) {
-          pIndex = i++;
-          vIndex = i++;
-          p = fnQueue[pIndex];
-          v = fnQueue[vIndex];
-          release(fnQueue, pIndex);
-          release(fnQueue, vIndex);
-          fn(p, v);
-        }
-        fnQueueLen = 0;
-        fnQueue.length = initQueueSize;
-      };
-
-      /**
-      		 * Schedule a flush task on the next tick.
-      		 * @private
-      		 * @param {Function} fn The flush task.
-       */
-      scheduleFlush = (function() {
-        var content, doc, mutationObserver, nextTick, node, observer;
-        doc = root.document;
-        try {
-          nextTick = root.process.nextTick;
-          return function() {
-            nextTick(flush);
-          };
-        } catch (_error) {}
-        if (nextTick = root.setImmediate) {
-          return function() {
-            nextTick(flush);
-          };
-        } else if (mutationObserver = root.MutationObserver) {
-          content = 1;
-          node = doc.createTextNode('');
-          observer = new mutationObserver(flush);
-          observer.observe(node, {
-            characterData: true
-          });
-          return function() {
-            node.data = (content = -content);
-          };
-        } else {
-          return function() {
-            setTimeout(flush);
-          };
-        }
-      })();
-      return function(p, v) {
-        fnQueue[fnQueueLen++] = p;
-        fnQueue[fnQueueLen++] = v;
-        if (fnQueueLen === 2) {
-          scheduleFlush();
-        }
-      };
-    };
-
-
-    /**
-    	 * Check if a variable is an iterable object.
-    	 * @private
-    	 * @param  {Any}  obj
-    	 * @return {Boolean}
-     */
-
-    assertIterable = function(obj) {
-      if (obj instanceof Array) {
-        return;
-      }
-      throw genTypeError($invalid_argument);
-    };
-
-
-    /**
-    	 * Generate type error object.
-    	 * @private
-    	 * @param  {String} msg
-    	 * @return {TypeError}
-     */
-
-    genTypeError = function(msg) {
-      return new TypeError(msg);
-    };
-
-    genTraceInfo = function(noTitle) {
-      return (new Error).stack.replace('Error', (noTitle ? '' : $fromPrevious));
-    };
-
-
-    /**
-    	 * These are some static symbolys.
-    	 * @private
-     */
-
-    $rejected = 0;
-
-    $resolved = 1;
-
-    $pending = 2;
-
-    $promiseTrace = '_pStack';
-
-    $settlerTrace = '_sStack';
-
-    $circularChain = 'promise_circular_chain';
-
-    $invalid_argument = 'invalid_argument';
-
-    $fromPrevious = 'From previous event:';
-
-    Yaku.prototype._state = $pending;
-
-
-    /**
-    	 * The number of current promises that attach to this Yaku instance.
-    	 * @private
-     */
-
-    Yaku.prototype._pCount = 0;
-
-    Yaku.prototype._pre = null;
-
-
-    /**
-    	 * Create an empty promise.
-    	 * @private
-    	 * @return {Yaku}
-     */
-
-    newEmptyYaku = function() {
-      return new Yaku($noop);
-    };
-
-
-    /**
-    	 * It will produce a settlePromise function to user.
-    	 * Such as the resolve and reject in this `new Yaku (resolve, reject) ->`.
-    	 * @private
-    	 * @param  {Yaku} self
-    	 * @param  {Integer} state The value is one of `$pending`, `$resolved` or `$rejected`.
-    	 * @return {Function} `(value) -> undefined` A resolve or reject function.
-     */
-
-    genSettler = function(self, state) {
-      return function(value) {
-        if (isLongStackTrace) {
-          self[$settlerTrace] = genTraceInfo(true);
-        }
-        if (state === $resolved) {
-          settleWithX(self, value);
-        } else {
-          settlePromise(self, state, value);
-        }
-      };
-    };
-
-
-    /**
-    	 * Link the promise1 to the promise2.
-    	 * @private
-    	 * @param {Yaku} p1
-    	 * @param {Yaku} p2
-    	 * @param {Function} onFulfilled
-    	 * @param {Function} onRejected
-     */
-
-    addHandler = function(p1, p2, onFulfilled, onRejected) {
-      if (isFunction(onFulfilled)) {
-        p2._onFulfilled = onFulfilled;
-      }
-      if (isFunction(onRejected)) {
-        p2._onRejected = onRejected;
-      }
-      p2._pre = p1;
-      p1[p1._pCount++] = p2;
-      if (p1._state !== $pending) {
-        scheduleHandler(p1, p2);
-      }
-      return p2;
-    };
-
-
-    /**
-    	 * Resolve the value returned by onFulfilled or onRejected.
-    	 * @private
-    	 * @param {Yaku} p1
-    	 * @param {Yaku} p2
-     */
-
-    scheduleHandler = genScheduler(1000, function(p1, p2) {
-      var handler, x;
-      handler = p1._state ? p2._onFulfilled : p2._onRejected;
-      if (handler === $nil) {
-        settlePromise(p2, p1._state, p1._value);
-        return;
-      }
-      x = genTryCatcher(callHanler)(handler, p1._value);
-      if (x === $tryErr) {
-        settlePromise(p2, $rejected, x.e);
-        return;
-      }
-      settleWithX(p2, x);
-    });
-
-    scheduleUnhandledRejection = genScheduler(100, function(p) {
-      var iter;
-      iter = function(node) {
-        var i, len;
-        i = 0;
-        len = node._pCount;
-        if (node._onRejected) {
-          return;
-        }
-        while (i < len) {
-          if (!iter(node[i++])) {
-            return;
-          }
-        }
-        return true;
-      };
-      if (iter(p)) {
-        Yaku.onUnhandledRejection(p._value, p);
-      }
-    });
-
-    genStackInfo = function(reason, p) {
-      var clean, iter, push, stackInfo, stackStr, trim;
-      stackInfo = [];
-      trim = function(str) {
-        return str.replace(/^\s+|\s+$/g, '');
-      };
-      if (isLongStackTrace && p[$promiseTrace]) {
-        push = function(trace) {
-          return stackInfo.push(trim(trace));
-        };
-        if (p[$settlerTrace]) {
-          push(p[$settlerTrace]);
-        }
-        iter = function(node) {
-          if (!node) {
-            return;
-          }
-          iter(node._next);
-          push(node[$promiseTrace]);
-          return iter(node._pre);
-        };
-        iter(p);
-      }
-      stackStr = '\n' + stackInfo.join('\n');
-      clean = function(stack, cleanPrev) {
-        var i;
-        if (cleanPrev && (i = stack.indexOf('\n' + $fromPrevious)) > 0) {
-          stack = stack.slice(0, i);
-        }
-        if (typeof __filename === 'string') {
-          return stack.replace(RegExp(".+" + __filename + ".+\\n?", "g"), '');
-        }
-      };
-      return [(reason ? reason.stack ? clean(trim(reason.stack), true) : reason : reason), clean(stackStr)];
-    };
-
-    callHanler = function(handler, value) {
-      return handler(value);
-    };
-
-
-    /**
-    	 * Resolve or reject a promise.
-    	 * @private
-    	 * @param  {Yaku} p
-    	 * @param  {Integer} state
-    	 * @param  {Any} value
-     */
-
-    settlePromise = function(p, state, value) {
-      var i, len, stack;
-      if (p._state !== $pending) {
-        return;
-      }
-      p._state = state;
-      p._value = value;
-      if (state === $rejected) {
-        if (isLongStackTrace && value && value.stack) {
-          stack = genStackInfo(value, p);
-          value.stack = stack[0] + stack[1];
-        }
-        if (!p._pre || p._pre._state === $resolved) {
-          scheduleUnhandledRejection(p);
-        }
-      }
-      if (!isLongStackTrace) {
-        p._pre = $nil;
-      }
-      i = 0;
-      len = p._pCount;
-      while (i < len) {
-        scheduleHandler(p, p[i++]);
-      }
-      return p;
-    };
-
-
-    /**
-    	 * Resolve or reject primise with value x. The x can also be a thenable.
-    	 * @private
-    	 * @param {Yaku} p
-    	 * @param {Any | Thenable} x A normal value or a thenable.
-     */
-
-    settleWithX = function(p, x) {
-      var xthen;
-      if (x === p && x) {
-        settlePromise(p, $rejected, genTypeError($circularChain));
-        return;
-      }
-      if (x !== null && (isFunction(x) || isObject(x))) {
-        xthen = genTryCatcher(getThen)(x);
-        if (xthen === $tryErr) {
-          settlePromise(p, $rejected, xthen.e);
-          return;
-        }
-        if (isFunction(xthen)) {
-          if (isLongStackTrace && x instanceof Yaku) {
-            p._next = x;
-          }
-          settleXthen(p, x, xthen);
-        } else {
-          settlePromise(p, $resolved, x);
-        }
-      } else {
-        settlePromise(p, $resolved, x);
-      }
-      return p;
-    };
-
-
-    /**
-    	 * Try to get a promise's then method.
-    	 * @private
-    	 * @param  {Thenable} x
-    	 * @return {Function}
-     */
-
-    getThen = function(x) {
-      return x.then;
-    };
-
-
-    /**
-    	 * Resolve then with its promise.
-    	 * @private
-    	 * @param  {Yaku} p
-    	 * @param  {Thenable} x
-    	 * @param  {Function} xthen
-     */
-
-    settleXthen = function(p, x, xthen) {
-      var err;
-      err = genTryCatcher(xthen).call(x, function(y) {
-        if (!x) {
-          return;
-        }
-        x = null;
-        settleWithX(p, y);
-      }, function(r) {
-        if (!x) {
-          return;
-        }
-        x = null;
-        settlePromise(p, $rejected, r);
-      });
-      if (err === $tryErr && x) {
-        settlePromise(p, $rejected, err.e);
-        x = null;
-      }
-    };
-
-    try {
-      module.exports = Yaku;
-    } catch (_error) {
-      try {
-        define(function() {
-          return Yaku;
-        });
-      } catch (_error) {
-        root.Yaku = Yaku;
-      }
-    }
-
-    return Yaku;
-
-  })();
-})();
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},"/node_modules/yaku/lib/yaku.js")
 },{}],45:[function(require,module,exports){
-"use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),o=0;o<t.length;o++){var n=t[o],p=Object.getOwnPropertyDescriptor(r,n);p&&p.configurable&&void 0===e[n]&&Object.defineProperty(e,n,p)}return e}Object.defineProperty(exports,"__esModule",{value:!0});var _requestInterceptor=require("./requestInterceptor");_defaults(exports,_interopRequireWildcard(_requestInterceptor));var _responseInterceptor=require("./responseInterceptor");_defaults(exports,_interopRequireWildcard(_responseInterceptor));
+"use strict";function _interopExportWildcard(e,r){var t=r({},e);return delete t["default"],t}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),o=0;o<t.length;o++){var n=t[o],p=Object.getOwnPropertyDescriptor(r,n);p&&p.configurable&&void 0===e[n]&&Object.defineProperty(e,n,p)}return e}Object.defineProperty(exports,"__esModule",{value:!0});var _requestInterceptor=require("./requestInterceptor");_defaults(exports,_interopExportWildcard(_requestInterceptor,_defaults));var _responseInterceptor=require("./responseInterceptor");_defaults(exports,_interopExportWildcard(_responseInterceptor,_defaults));
 
 },{"./requestInterceptor":46,"./responseInterceptor":47}],46:[function(require,module,exports){
 "use strict";function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,t){for(var r=0;r<t.length;r++){var n=t[r];n.enumerable=n.enumerable||!1,n.configurable=!0,"value"in n&&(n.writable=!0),Object.defineProperty(e,n.key,n)}}return function(t,r,n){return r&&e(t.prototype,r),n&&e(t,n),t}}(),RequestInterceptor=function(){function e(){_classCallCheck(this,e)}return _createClass(e,[{key:"request",value:function(e){}},{key:"requestError",value:function(e){}}]),e}();exports.RequestInterceptor=RequestInterceptor;
@@ -5832,9 +5110,9 @@ module.exports = function pctEncode(regexp) {
 "use strict";function _classCallCheck(e,n){if(!(e instanceof n))throw new TypeError("Cannot call a class as a function")}Object.defineProperty(exports,"__esModule",{value:!0});var _createClass=function(){function e(e,n){for(var r=0;r<n.length;r++){var t=n[r];t.enumerable=t.enumerable||!1,t.configurable=!0,"value"in t&&(t.writable=!0),Object.defineProperty(e,t.key,t)}}return function(n,r,t){return r&&e(n.prototype,r),t&&e(n,t),n}}(),ResponseInterceptor=function(){function e(){_classCallCheck(this,e)}return _createClass(e,[{key:"response",value:function(e){}},{key:"responseError",value:function(e){}}]),e}();exports.ResponseInterceptor=ResponseInterceptor;
 
 },{}],48:[function(require,module,exports){
-"use strict";function _interopRequireWildcard(e){if(e&&e.__esModule)return e;var r={};if(null!=e)for(var t in e)Object.prototype.hasOwnProperty.call(e,t)&&(r[t]=e[t]);return r["default"]=e,r}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),i=0;i<t.length;i++){var o=t[i],n=Object.getOwnPropertyDescriptor(r,o);n&&n.configurable&&void 0===e[o]&&Object.defineProperty(e,o,n)}return e}Object.defineProperty(exports,"__esModule",{value:!0});var _restClientConfig=require("./restClient/config");_restClientConfig.config.Promise=require("yaku"),exports.config=_restClientConfig.config;var _restClient=require("./restClient/");_defaults(exports,_interopRequireWildcard(_restClient));var _coreBaseInterceptors=require("./core/baseInterceptors");_defaults(exports,_interopRequireWildcard(_coreBaseInterceptors));
+"use strict";function _interopExportWildcard(e,r){var t=r({},e);return delete t["default"],t}function _defaults(e,r){for(var t=Object.getOwnPropertyNames(r),o=0;o<t.length;o++){var n=t[o],i=Object.getOwnPropertyDescriptor(r,n);i&&i.configurable&&void 0===e[n]&&Object.defineProperty(e,n,i)}return e}Object.defineProperty(exports,"__esModule",{value:!0});var _restClientConfig=require("./restClient/config");exports.config=_restClientConfig.config;var _restClient=require("./restClient/");_defaults(exports,_interopExportWildcard(_restClient,_defaults));var _coreBaseInterceptors=require("./core/baseInterceptors");_defaults(exports,_interopExportWildcard(_coreBaseInterceptors,_defaults));
 
-},{"./core/baseInterceptors":45,"./restClient/":51,"./restClient/config":49,"yaku":44}],49:[function(require,module,exports){
+},{"./core/baseInterceptors":45,"./restClient/":51,"./restClient/config":49}],49:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -5954,36 +5232,36 @@ var Http = (function () {
 
 exports.Http = Http;
 
-},{"./config":49,"./utils":56,"superagent-interface-promise":36}],51:[function(require,module,exports){
+},{"./config":49,"./utils":56,"superagent-interface-promise":37}],51:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
+function _interopExportWildcard(obj, defaults) { var newObj = defaults({}, obj); delete newObj['default']; return newObj; }
 
 function _defaults(obj, defaults) { var keys = Object.getOwnPropertyNames(defaults); for (var i = 0; i < keys.length; i++) { var key = keys[i]; var value = Object.getOwnPropertyDescriptor(defaults, key); if (value && value.configurable && obj[key] === undefined) { Object.defineProperty(obj, key, value); } } return obj; }
 
 var _restClient = require('./restClient');
 
-_defaults(exports, _interopRequireWildcard(_restClient));
+_defaults(exports, _interopExportWildcard(_restClient, _defaults));
 
 var _request = require('./request');
 
-_defaults(exports, _interopRequireWildcard(_request));
+_defaults(exports, _interopExportWildcard(_request, _defaults));
 
 var _response = require('./response');
 
-_defaults(exports, _interopRequireWildcard(_response));
+_defaults(exports, _interopExportWildcard(_response, _defaults));
 
 var _restResource = require('./restResource');
 
-_defaults(exports, _interopRequireWildcard(_restResource));
+_defaults(exports, _interopExportWildcard(_restResource, _defaults));
 
 var _config = require('./config');
 
-_defaults(exports, _interopRequireWildcard(_config));
+_defaults(exports, _interopExportWildcard(_config, _defaults));
 
 },{"./config":49,"./request":52,"./response":53,"./restClient":54,"./restResource":55}],52:[function(require,module,exports){
 'use strict';
@@ -6457,7 +5735,7 @@ var RestResource = (function () {
 
 exports.RestResource = RestResource;
 
-},{"./http":50,"./request":52,"lodash/lang/isObject":25,"uri-template":40}],56:[function(require,module,exports){
+},{"./http":50,"./request":52,"lodash/lang/isObject":25,"uri-template":41}],56:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
