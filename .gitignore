@@ -3,6 +3,7 @@ site
 .tmp
 test.js
 test2.js
+build
 
 # common
 node_modules
