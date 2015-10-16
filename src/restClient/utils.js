@@ -23,7 +23,7 @@ export function normalizeUrl(url) {
   if (!IS_ABSOLUTE.test(url)) {
     return normalizeurl(url).replace('http://', '');
   } else {
-    return normalizeurl(url)
+    return normalizeurl(url);
   }
 }
 

@@ -14,16 +14,19 @@
   "engine": "node >= 0.12.0",
   "devDependencies": {
     "babel": "^5.1.13",
+    "babel-eslint": "^4.1.3",
     "babelify": "^6.0.2",
     "browserify": "^10.2.3",
     "chai": "^3.0.0",
     "envify": "^3.4.0",
+    "eslint": "^1.6.0",
     "mocha": "^2.2.5",
     "mocha-unfunk-reporter": "^0.4.0",
     "uglifyify": "^3.0.1"
   },
   "main": "build/node/index.js",
   "scripts": {
+    "eslint": "eslint src",
     "test": "mocha --recursive --compilers js:babel/register -R mocha-unfunk-reporter",
     "clean": "rm -rf build/* && mkdir  -p build/{node,browser}",
     "build:node": "babel -d build/node src/ && rm build/node/index-browser.js",
