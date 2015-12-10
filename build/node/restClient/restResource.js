@@ -35,7 +35,7 @@ var RestResource = (function () {
     this._config.interceptors = config.interceptors || [];
     this._config.http = config.http || new _http.Http();
 
-    var config = this._config[resourceName] || {};
+    config = this._config[resourceName] || {};
 
     if ((0, _lodashLangIsObject2['default'])(config.methods)) {
       (function () {
