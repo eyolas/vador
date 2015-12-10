@@ -24,6 +24,6 @@ var _restResource = require('./restResource');
 
 _defaults(exports, _interopExportWildcard(_restResource, _defaults));
 
-var _config = require('./config');
+var _http = require('./http');
 
-_defaults(exports, _interopExportWildcard(_config, _defaults));
+_defaults(exports, _interopExportWildcard(_http, _defaults));

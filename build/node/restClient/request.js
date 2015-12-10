@@ -122,7 +122,6 @@ var Request = (function () {
       var _this2 = this;
 
       var value = res.value;
-      var request = res.request;
 
       if (Array.isArray(value)) {
         var _ret = (function () {
