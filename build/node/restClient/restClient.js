@@ -10,8 +10,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'd
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _http = require('./http');
-
 var _restResource = require('./restResource');
 
 var _lodashObjectAssign = require('lodash/object/assign');

@@ -1,12 +1,12 @@
 import {isNotEmpty, normalizeUrl} from './utils';
 import {Response} from './response';
-import {ResponseInterceptor, RequestInterceptor} from '../core/baseInterceptors/'
+import {ResponseInterceptor, RequestInterceptor} from '../core/baseInterceptors/';
 import {config} from './config';
 
 export class Request {
   constructor(baseUrl, resourceName, restResource, config = {}) {
     this._baseUrl = baseUrl;
-    this._interceptors = config.interceptors || [];
+    this._interceptors = config.interceptors || [];
     this._http = config.http;
     this.resourceName = resourceName;
     this._allConfig = config;
@@ -35,7 +35,7 @@ export class Request {
     if (onEnd) {
       this._interceptors.push(interceptor);
     } else {
-       this._interceptors.unshift(interceptor);
+      this._interceptors.unshift(interceptor);
     }
 
     return this;
@@ -96,7 +96,7 @@ export class Request {
   }
 
   proxify(res) {
-    let {value, request} = res;
+    let {value} = res;
 
     if (Array.isArray(value)) {
       let values = [];
@@ -129,7 +129,7 @@ export class Request {
             return config.Promise.reject(error);
           }
         });
-    }
+    };
 
     let chain = [_request, undefined];
 

@@ -9,11 +9,11 @@ export class RestResource {
     this._baseUrl = baseUrl + '/';
     this.resourceName = resourceName;
     this._config = config;
-    this._config.defaultHeaders = config.defaultHeaders || {};
-    this._config.interceptors = config.interceptors || [];
+    this._config.defaultHeaders = config.defaultHeaders || {};
+    this._config.interceptors = config.interceptors || [];
     this._config.http = config.http || new Http();
 
-    var config = this._config[resourceName] || {};
+    config = this._config[resourceName] || {};
 
     if (isObject(config.methods)) {
       let methods = config.methods;
@@ -34,9 +34,9 @@ export class RestResource {
               let addUrl = url.expand(obj);
 
               return this.constructBaseRequest('get', type, addUrl);
-            }
+            };
           })(url, type);
-        })
+        });
     }
   }
 
